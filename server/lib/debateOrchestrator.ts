@@ -86,36 +86,38 @@ export async function runDebate(
       const userPrompt = createUserPrompt(history, round, agent.name);
 
       try {
+        const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
+  
         const content = await callProvider(
-          agent.provider,
-          agent.model,
-          systemPrompt,
-          userPrompt,
-          agent.apiKey
-        );
+        agent.provider,
+        agent.model,
+        combinedPrompt
+      );
 
-        const message: DebateMessage = {
-          id: randomUUID(),
-          agentName: agent.name,
-          message: content,
-          timestamp: new Date().toISOString(),
-          round,
-        };
+      const message: DebateMessage = {
+        id: randomUUID(),
+        agentName: agent.name,
+        agentNumber: i,
+        message: content,
+        timestamp: new Date().toISOString(),
+        round,
+      };
 
-        history.push(message);
-        onMessage(message);
-      } catch (error) {
-        console.error(`Error with agent ${agent.name}:`, error);
-        const errorMessage: DebateMessage = {
-          id: randomUUID(),
-          agentName: agent.name,
-          message: `Error generating response: ${error instanceof Error ? error.message : "Unknown error"}`,
-          timestamp: new Date().toISOString(),
-          round,
-        };
-        history.push(errorMessage);
-        onMessage(errorMessage);
-      }
+      history.push(message);
+      onMessage(message);
+    } catch (error) {
+      console.error(`Error with agent ${agent.name}:`, error);
+      const errorMessage: DebateMessage = {
+        id: randomUUID(),
+        agentName: agent.name,
+        agentNumber: i,
+        message: `Error generating response: ${error instanceof Error ? error.message : "Unknown error"}`,
+        timestamp: new Date().toISOString(),
+        round,
+      };
+      history.push(errorMessage);
+      onMessage(errorMessage);
+    }
     }
   }
 
