@@ -66,7 +66,7 @@ function createUserPrompt(
 
   const recentHistory = history.slice(-MAX_CONTEXT_MESSAGES);
   const historyText = recentHistory
-    .map((msg) => `${msg.agentName}: ${msg.content}`)
+    .map((msg) => `${msg.agentName}: ${msg.message}`)
     .join("\n\n");
 
   return `Previous arguments:\n${historyText}\n\nNow it's your turn, ${agentName}. Respond to the previous arguments in 1-3 paragraphs. Build on strong points or challenge weak ones.`;
@@ -97,7 +97,7 @@ export async function runDebate(
         const message: DebateMessage = {
           id: randomUUID(),
           agentName: agent.name,
-          content,
+          message: content,
           timestamp: new Date().toISOString(),
           round,
         };
