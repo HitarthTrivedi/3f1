@@ -1,8 +1,8 @@
-import { callOpenAI } from "./openai";
-import { callGemini } from "./gemini";
-import { callPerplexity } from "./perplexity";
-import { callCustomAPI } from "./custom";
-import type { AgentConfig } from "@shared/schema";
+import { callOpenAI } from "./openai.js";
+import { callGemini } from "./gemini.js";
+import { callPerplexity } from "./perplexity.js";
+import { callCustomAPI } from "./custom.js";
+import type { AgentConfig } from "@shared/schema.js";
 
 export async function callProvider(
   agent: AgentConfig,
