@@ -109,7 +109,7 @@ export async function runDebate(
         const errorMessage: DebateMessage = {
           id: randomUUID(),
           agentName: agent.name,
-          content: `Error generating response: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Error generating response: ${error instanceof Error ? error.message : "Unknown error"}`,
           timestamp: new Date().toISOString(),
           round,
         };
