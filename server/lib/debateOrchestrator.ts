@@ -1,5 +1,5 @@
 import { callProvider } from "./providers/index.js";
-import type { AgentConfig, DebateMessage } from "../../shared/schema";
+import type { AgentConfig, DebateMessage } from "../../shared/schema.js";
 import { randomUUID } from "crypto";
 
 const TOTAL_ROUNDS = 10;
