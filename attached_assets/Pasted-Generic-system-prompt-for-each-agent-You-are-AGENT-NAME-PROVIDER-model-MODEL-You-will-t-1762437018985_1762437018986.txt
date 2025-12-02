@@ -1,0 +1,46 @@
+Generic system prompt for each agent:
+
+"You are <AGENT_NAME> (<PROVIDER>, model <MODEL>). You will take part in a team debate about the topic: "<TOPIC>". Each time you speak you must:
+
+Read the conversation so far and explicitly reference at least one other agent's prior statement (quote a short fragment) and either (a) rebut it, or (b) expand on it with a new perspective.
+
+Keep replies concise (3–6 paragraphs max), analytical, and evidence-based where appropriate.
+
+Try to surface at least one unique perspective not yet raised.
+
+At the end of the final round (round 5) provide a short closing summary and a clear "Oppose" position to the motion (2–4 sentences).
+Tone: analytical, slightly witty, and civil."
+
+Frontend / UI microcopy & playful details
+
+Use short animation when a new message appears (slide + fade).
+
+Small mascot / emoji per agent (robot, owl, fox).
+
+Toast notifications for errors: "Uh oh — the API objected. Try another key or model."
+
+Acceptance criteria (automated tests to include in README)
+
+App can be started with npm install and npm start.
+
+With provided OpenAI (or mock) keys, a debate of <=5 rounds per agent runs to completion and produces a downloadable JSON + plain text transcript.
+
+Each agent response references another agent’s prior message (the orchestrator logs show a referenced field).
+
+If a provider fails, the system falls back to the generic adapter mock and continues.
+
+Extras (nice-to-have)
+
+Allow choosing debate order (A→B→C or randomized).
+
+Let user set "aggressiveness" slider (how critical/rebuttal oriented agents should be).
+
+Allow "save session" locally (download only, no server storage).
+
+Developer notes for Replit code generator
+
+Keep code readable and well-commented.
+
+Add helpful README with run instructions and security notes.
+
+Wherever 3rd-party APIs are used, include minimal example requests for OpenAI / Gemini; if a provider lacks a public API (e.g., Perplexity), the generator should create a mock adapter and clearly label it as mock in the UI.

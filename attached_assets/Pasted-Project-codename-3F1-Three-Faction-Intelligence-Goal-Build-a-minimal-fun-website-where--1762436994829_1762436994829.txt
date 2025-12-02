@@ -1,0 +1,56 @@
+Project codename: **3F1 (Three-Faction-Intelligence)**
+
+Goal:
+Build a minimal+fun website where **three AI agents debate a topic** given by the user.
+
+Requirements:
+- User can input:
+  - Agent 1 / Agent 2 / Agent 3
+  - Provider (ChatGPT / Gemini / Perplexity / Custom API endpoint)
+  - Model/version (e.g., gpt-4o, gemini-2.0-pro, etc.)
+  - API Keys (masked input fields)
+- User enters a debate topic
+- System auto-runs a **debate of 5 turns per agent** (15 total messages):
+  - Each agent MUST read/analyze previous messages
+  - Must explicitly reference another agent’s argument in each response
+  - Must progressively explore multiple perspectives
+  - Final round ends with a **clear “Oppose the motion” stance**
+- After debate completes:
+  - Show transcript live on screen
+  - Provide a **Download transcript (.txt or .json)** button
+
+Style/UI:
+- Minimal UI, playful tone (Perplexity vibes but simpler)
+- Block-font **3F1** logo displayed at top
+- Light theme, clean layout, subtle animations (slide/fade on each message)
+- Funny microcopy ("Let the robots argue 🥲")
+
+Technology (strictly follow this):
+- Backend: Node.js + Express
+  - `server.js` handles proxies to different AI providers
+  - Create simple adapters (`/lib/openai.js`, `/lib/gemini.js`, `/lib/generic.js`)
+- Frontend: Single-page web app
+  - Can be React or HTML/JS — prioritize minimal simplicity
+  - Form: 3 agent blocks + topic input + Start button
+- No database — do not store API keys persistently
+- Transcript export feature required
+
+Backend Orchestration Logic:
+- `debateOrchestrator.js`
+  - Loop 5 rounds
+  - For each round, call Agent A → Agent B → Agent C
+  - Include prior messages as conversation context
+  - Trim context if token size too large (summaries ok)
+  - Agents MUST reference previous arguments
+
+System prompt template for each agent (use in code):
+
+“You are <AGENT_NAME> (<PROVIDER>, model <MODEL>). Each time you speak:
+1) Read conversation history and quote at least one message from another agent.
+2) Rebut, extend, or challenge the argument logically.
+3) Offer a new perspective that hasn’t been mentioned yet.
+4) At round 5, provide a closing summary AND a clear ‘Oppose the motion’ stance.”
+
+Output format needed:
+- Live feed on screen
+- Download transcript JSON file containing:
