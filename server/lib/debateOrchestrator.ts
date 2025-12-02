@@ -1,4 +1,4 @@
-import { callProvider } from "./providers/index";
+import { callProvider } from "./providers/index.js";
 import type { AgentConfig, DebateMessage } from "../../shared/schema";
 import { randomUUID } from "crypto";
 
