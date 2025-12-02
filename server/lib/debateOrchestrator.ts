@@ -89,9 +89,9 @@ export async function runDebate(
         const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
   
         const content = await callProvider(
-        agent.provider,
-        agent.model,
-        combinedPrompt
+        agent,
+        combinedPrompt,
+        []  
       );
 
       const message: DebateMessage = {
