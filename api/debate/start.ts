@@ -6,8 +6,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { debateConfigSchema } = await import('../../shared/schema');
-    const { runDebate } = await import('../../server/lib/debateOrchestrator');
+    const { debateConfigSchema } = await import('../../shared/schema.js');
+    const { runDebate } = await import('../../server/lib/debateOrchestrator.js');
     
     const validatedConfig = debateConfigSchema.parse(req.body);
 
