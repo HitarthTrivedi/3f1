@@ -7,6 +7,8 @@ interface DebateTopicInputProps {
   onTopicChange: (value: string) => void;
   onStartDebate: () => void;
   isDebating: boolean;
+  startButtonText?: string;
+  isStartDisabled?: boolean;
 }
 
 export default function DebateTopicInput({
@@ -14,6 +16,8 @@ export default function DebateTopicInput({
   onTopicChange,
   onStartDebate,
   isDebating,
+  startButtonText = "Start Debate",
+  isStartDisabled = false,
 }: DebateTopicInputProps) {
   return (
     <div className="space-y-6">
@@ -31,12 +35,12 @@ export default function DebateTopicInput({
       </div>
       <Button
         onClick={onStartDebate}
-        disabled={!topic.trim() || isDebating}
+        disabled={!topic.trim() || isDebating || isStartDisabled}
         className="w-full h-14 text-lg"
         size="lg"
         data-testid="button-start-debate"
       >
-        {isDebating ? "Debate in Progress..." : "Start Debate"}
+        {isDebating ? "Debate in Progress..." : startButtonText}
       </Button>
     </div>
   );

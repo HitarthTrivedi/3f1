@@ -1,8 +1,30 @@
+import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Added users table definition for subscription model
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  credits: integer("credits").notNull().default(0),
+  freePrompts: integer("free_prompts").notNull().default(1),
+  // Optional: valid API key for BYOK
+  apiKey: text("api_key"),
+});
+
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
+  apiKey: true,
+});
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
 
 export const agentConfigSchema = z.object({
   name: z.string(),
-  provider: z.enum(["openai", "gemini", "perplexity", "custom"]),
+  provider: z.enum(["openai", "gemini", "perplexity", "custom", "builtin"]),
   model: z.string(),
   apiKey: z.string(),
   customEndpoint: z.string().optional(),

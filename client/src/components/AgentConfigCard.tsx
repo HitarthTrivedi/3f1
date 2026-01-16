@@ -22,7 +22,7 @@ interface AgentConfigCardProps {
 
 const agentColors = [
   "bg-primary/10 border-primary/20",
-  "bg-secondary/10 border-secondary/20", 
+  "bg-secondary/10 border-secondary/20",
   "bg-accent/10 border-accent/20"
 ];
 
@@ -37,7 +37,7 @@ export default function AgentConfigCard({
   onApiKeyChange,
 }: AgentConfigCardProps) {
   const colorClass = agentColors[agentNumber - 1] || agentColors[0];
-  
+
   return (
     <Card className="p-6 hover-elevate" data-testid={`card-agent-${agentNumber}`}>
       <div className="space-y-6">
@@ -57,6 +57,7 @@ export default function AgentConfigCard({
               <SelectValue placeholder="Select provider" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="builtin">Built-in AI (Uses Credits)</SelectItem>
               <SelectItem value="openai">ChatGPT</SelectItem>
               <SelectItem value="gemini">Gemini</SelectItem>
               <SelectItem value="perplexity">Perplexity</SelectItem>
@@ -70,23 +71,30 @@ export default function AgentConfigCard({
           <Input
             id={`model-${agentNumber}`}
             placeholder="e.g., gpt-4o"
-            value={model}
+            value={provider === "builtin" ? "gemini-2.5-flash" : model}
             onChange={(e) => onModelChange(e.target.value)}
+            disabled={provider === "builtin"}
             data-testid={`input-model-${agentNumber}`}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor={`api-key-${agentNumber}`}>API Key</Label>
-          <Input
-            id={`api-key-${agentNumber}`}
-            type="password"
-            placeholder="Enter API key"
-            value={apiKey}
-            onChange={(e) => onApiKeyChange(e.target.value)}
-            data-testid={`input-apikey-${agentNumber}`}
-          />
-        </div>
+        {provider !== "builtin" ? (
+          <div className="space-y-2">
+            <Label htmlFor={`api-key-${agentNumber}`}>API Key</Label>
+            <Input
+              id={`api-key-${agentNumber}`}
+              type="password"
+              placeholder="Enter API key"
+              value={apiKey}
+              onChange={(e) => onApiKeyChange(e.target.value)}
+              data-testid={`input-apikey-${agentNumber}`}
+            />
+          </div>
+        ) : (
+          <div className="p-3 bg-muted rounded-md text-sm text-muted-foreground border">
+            Using built-in credits. No API key required.
+          </div>
+        )}
       </div>
     </Card>
   );

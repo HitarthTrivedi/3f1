@@ -3,12 +3,14 @@ import { callProvider } from "./providers/index.js";
 import type { AgentConfig, DebateMessage } from "../../shared/schema.js";
 import { randomUUID } from "crypto";
 
-const TOTAL_ROUNDS = 7;
+const TOTAL_ROUNDS = 5;
 const MAX_CONTEXT_MESSAGES = 20;
 
 const AGENT_PERSONALITIES = {
   analyst: {
     role: "The Analyst",
+    traits: "Analytical, Structured, Objective, Inquisitive",
+    style: "Formal, logical, and concise. Focuses on definitions and data.",
     systemPrompt: `You are Agent 1: The Analyst. Your role is to break the topic into fundamental components, define the problem, identify assumptions, and present a structured, analytical foundation.
     Behaviors:
     -Keep responses 5 lines maximum.
@@ -23,6 +25,8 @@ const AGENT_PERSONALITIES = {
   },
   critic: {
     role: "The Critic",
+    traits: "Skeptical, Critical, Direct, Challenging",
+    style: "Sharp, questioning, and provocative. Focuses on flaws and contradictions.",
     systemPrompt: `You are Agent 2: The Critic. Your job is to challenge, question, and stress-test the ideas introduced by other agents.
     Behaviors:
 -Keep responses 5 lines maximum.    
@@ -37,6 +41,8 @@ const AGENT_PERSONALITIES = {
   },
   synthesizer: {
     role: "The Synthesizer",
+    traits: "Integrative, Diplomatic, Holistic, Solution-oriented",
+    style: "Balanced, constructive, and forward-looking. Focuses on harmony and resolution.",
     systemPrompt: `You are Agent 3: The Synthesizer. Your role is to integrate perspectives from Agent 1 and Agent 2 into coherent insights or actionable conclusions.
 
 Behaviors:
@@ -65,7 +71,7 @@ function createSystemPrompt(
   round: number
 ): string {
   const personality = getAgentPersonality(agentNumber);
-  
+
   return `You are ${agentName}, ${personality.role} in this debate.
 
 Your personality traits: ${personality.traits}
@@ -116,37 +122,37 @@ export async function runDebate(
 
       try {
         const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
-  
+
         const content = await callProvider(
-        agent,
-        combinedPrompt,
-        []  
-      );
+          agent,
+          combinedPrompt,
+          []
+        );
 
-      const message: DebateMessage = {
-        id: randomUUID(),
-        agentName: agent.name,
-        agentNumber: i,
-        message: content,
-        timestamp: new Date().toISOString(),
-        round,
-      };
+        const message: DebateMessage = {
+          id: randomUUID(),
+          agentName: agent.name,
+          agentNumber: i,
+          message: content,
+          timestamp: new Date().toISOString(),
+          round,
+        };
 
-      history.push(message);
-      onMessage(message);
-    } catch (error) {
-      console.error(`Error with agent ${agent.name}:`, error);
-      const errorMessage: DebateMessage = {
-        id: randomUUID(),
-        agentName: agent.name,
-        agentNumber: i,
-        message: `Error generating response: ${error instanceof Error ? error.message : "Unknown error"}`,
-        timestamp: new Date().toISOString(),
-        round,
-      };
-      history.push(errorMessage);
-      onMessage(errorMessage);
-    }
+        history.push(message);
+        onMessage(message);
+      } catch (error) {
+        console.error(`Error with agent ${agent.name}:`, error);
+        const errorMessage: DebateMessage = {
+          id: randomUUID(),
+          agentName: agent.name,
+          agentNumber: i,
+          message: `Error generating response: ${error instanceof Error ? error.message : "Unknown error"}`,
+          timestamp: new Date().toISOString(),
+          round,
+        };
+        history.push(errorMessage);
+        onMessage(errorMessage);
+      }
     }
   }
 

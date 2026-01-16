@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { ArrowLeft, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AgentConfigCard from "@/components/AgentConfigCard";
 import DebateTopicInput from "@/components/DebateTopicInput";
 import DebateFeed, { type Message } from "@/components/DebateFeed";
 import DownloadSection from "@/components/DownloadSection";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AgentConfig {
   provider: string;
@@ -17,6 +18,8 @@ interface AgentConfig {
 
 export default function Home() {
   const { toast } = useToast();
+  const { user, logout } = useAuth();
+  const [_, setLocation] = useLocation();
   const [topic, setTopic] = useState("");
   const [isDebating, setIsDebating] = useState(false);
   const [debateComplete, setDebateComplete] = useState(false);
@@ -40,6 +43,25 @@ export default function Home() {
     apiKey: "",
   });
 
+  const agents = [agent1, agent2, agent3];
+  const usesCredits = agents.some(a => a.provider === "builtin");
+
+  const buyCredits = async () => {
+    try {
+      const res = await fetch("/api/pay", { method: "POST" });
+      if (res.ok) {
+        toast({ title: "Purchase Successful", description: "50 Credits added!" });
+        // Refresh user happens automatically? No, useAuth doesn't auto-refresh on external mutation.
+        // Usually need to reload or expose refresh. For now reload page or rely on optimistic? 
+        // I will just force reload for simplicity or accept it updates next load. 
+        // Better: user window.location.reload()
+        window.location.reload();
+      }
+    } catch (e) {
+      toast({ title: "Purchase Failed", variant: "destructive" });
+    }
+  };
+
   const handleStartDebate = async () => {
     if (!agent1.provider || !agent2.provider || !agent3.provider) {
       toast({
@@ -59,13 +81,39 @@ export default function Home() {
       return;
     }
 
-    if (!agent1.apiKey || !agent2.apiKey || !agent3.apiKey) {
+    // --- Refined Subscription Flow: Built-in vs BYOK ---
+    const agents = [agent1, agent2, agent3];
+    const usesCredits = agents.some(a => a.provider === "builtin");
+
+    // Check keys for non-builtin agents
+    if (agents.some(a => a.provider !== "builtin" && !a.apiKey)) {
       toast({
         title: "API keys required",
-        description: "All agents need API keys to participate in the debate.",
+        description: "Please provide API keys for external providers, or use Built-in AI.",
         variant: "destructive",
       });
       return;
+    }
+
+    // Check Credit Requirements ONLY if using Built-in
+    if (usesCredits) {
+      if (user) {
+        // Logged In: Check Credits
+        const cost = 10;
+        const free = user.freePrompts > 0;
+
+        if (!free && user.credits < cost) {
+          toast({
+            title: "Insufficient Credits",
+            description: "You need 10 credits to use Built-in AI. Please buy more or use your own keys.",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        // Anonymous: Server tracks usage. 
+        // We let it proceed. If session limit reached, server returns 401.
+      }
     }
 
     setIsDebating(true);
@@ -106,7 +154,27 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to start debate");
+        const errText = await response.text();
+        let errMsg = "Failed to start debate";
+        let requiresAuth = false;
+        try {
+          const json = JSON.parse(errText);
+          errMsg = json.error || errMsg;
+          requiresAuth = json.requiresAuth;
+        } catch { }
+
+        if (requiresAuth) {
+          toast({
+            title: "Free Limit Reached",
+            description: "You have used your 1 free anonymous prompt. Please login to continue.",
+            variant: "destructive",
+            action: <Link href="/auth"><Button variant="outline" size="sm">Login</Button></Link>
+          });
+          setIsDebating(false);
+          return;
+        }
+
+        throw new Error(errMsg);
       }
 
       const reader = response.body?.getReader();
@@ -120,12 +188,12 @@ export default function Home() {
 
       while (true) {
         const { done, value } = await reader.read();
-        
+
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
-        
+
         buffer = lines.pop() || "";
 
         for (const line of lines) {
@@ -140,6 +208,9 @@ export default function Home() {
                   title: "Debate Complete",
                   description: "All rounds have finished. You can now download the transcript.",
                 });
+                // Refresh to show updated credits
+                // if (user) setTimeout(() => window.location.reload(), 1500);
+
               } else if (data.type === "error") {
                 throw new Error(data.error);
               } else {
@@ -158,13 +229,16 @@ export default function Home() {
           }
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Debate error:", error);
       setIsDebating(false);
       toast({
         title: "Debate failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred. Please check your API keys and try again.",
+        description: error.message || "An unexpected error occurred.",
         variant: "destructive",
+        action: error.message?.includes("credits") ? (
+          <Button size="sm" onClick={buyCredits}>Buy Credits</Button>
+        ) : undefined
       });
     }
   };
@@ -243,9 +317,26 @@ export default function Home() {
               <p className="text-sm text-muted-foreground">Configure & Debate</p>
             </div>
           </div>
+
+          <div className="flex items-center gap-2">
+            {user ? (
+              <div className="flex items-center gap-3">
+                <div className="text-right hidden sm:block">
+                  <div className="text-sm font-medium">Credits: {user.credits}</div>
+                  <div className="text-xs text-muted-foreground">Free Prompts: {user.freePrompts}</div>
+                </div>
+                <Button size="sm" variant="outline" onClick={buyCredits}>Add Credits</Button>
+                <Button size="sm" variant="ghost" onClick={logout}>Logout</Button>
+              </div>
+            ) : (
+              <Link href="/auth">
+                <Button size="sm">Login / Register</Button>
+              </Link>
+            )}
+          </div>
         </div>
       </header>
-      
+
       <main className="max-w-6xl mx-auto px-4 py-12">
         <div className="space-y-12">
           <motion.section
@@ -261,7 +352,7 @@ export default function Home() {
                 provider={agent1.provider}
                 model={agent1.model}
                 apiKey={agent1.apiKey}
-                onProviderChange={(val) => setAgent1({ ...agent1, provider: val })}
+                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.5-flash" : agent1.model })}
                 onModelChange={(val) => setAgent1({ ...agent1, model: val })}
                 onApiKeyChange={(val) => setAgent1({ ...agent1, apiKey: val })}
               />
@@ -271,7 +362,7 @@ export default function Home() {
                 provider={agent2.provider}
                 model={agent2.model}
                 apiKey={agent2.apiKey}
-                onProviderChange={(val) => setAgent2({ ...agent2, provider: val })}
+                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.5-flash" : agent2.model })}
                 onModelChange={(val) => setAgent2({ ...agent2, model: val })}
                 onApiKeyChange={(val) => setAgent2({ ...agent2, apiKey: val })}
               />
@@ -281,14 +372,14 @@ export default function Home() {
                 provider={agent3.provider}
                 model={agent3.model}
                 apiKey={agent3.apiKey}
-                onProviderChange={(val) => setAgent3({ ...agent3, provider: val })}
+                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.5-flash" : agent3.model })}
                 onModelChange={(val) => setAgent3({ ...agent3, model: val })}
                 onApiKeyChange={(val) => setAgent3({ ...agent3, apiKey: val })}
               />
             </div>
           </motion.section>
 
-          <motion.section 
+          <motion.section
             className="max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -299,7 +390,26 @@ export default function Home() {
               onTopicChange={setTopic}
               onStartDebate={handleStartDebate}
               isDebating={isDebating}
+              startButtonText={
+                !usesCredits
+                  ? "Start Debate" // No cost for external keys
+                  : !user
+                    ? "Start Debate (1 Free)"
+                    : user.freePrompts > 0
+                      ? `Start Debate (${user.freePrompts} Free)`
+                      : "Start Debate (10 Credits)"
+              }
+              isStartDisabled={
+                // Disable if user logged in, no free prompts, and insufficient credits ONLY if using credits
+                !!(usesCredits && user && user.freePrompts <= 0 && user.credits < 10)
+              }
             />
+            {/* Adding an overlay or message if credits low, or modifying component. 
+                For now, I'll assume I need to modify DebateTopicInput or wrapping it.
+                Wait, I can't check DebateTopicInput content easily without reading it. 
+                I will read it first to be safe, but typically I should pass props. 
+                Let's assume I need to modify DebateTopicInput to accept a custom label/disabled prop.
+            */}
           </motion.section>
 
           {messages.length > 0 && (
@@ -313,8 +423,8 @@ export default function Home() {
           )}
 
           {debateComplete && (
-            <motion.section 
-              className="max-w-3xl mx-auto"
+            <motion.section
+              className="max-w-3xl mx-auto space-y-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -323,6 +433,37 @@ export default function Home() {
                 onDownloadJson={handleDownloadJson}
                 onDownloadText={handleDownloadText}
               />
+
+              <div className="flex justify-center">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    // If user is anonymous, "Another Debate" means they likely used their 1 free prompt.
+                    // The requirement says: "when user clicks it, he will get a login or register button"
+                    if (!user) {
+                      toast({
+                        title: "Registration Required",
+                        description: "Please register to continue debating.",
+                      });
+                      setLocation("/auth");
+                      return;
+                    }
+
+                    // If using credits, we reload to ensure credit balance is updated from server
+                    // This satisfies "redirects to the credits" (or refreshes UI) ONLY when clicking this.
+                    if (usesCredits) {
+                      window.location.reload();
+                    } else {
+                      // If using external keys, just reset state without reload
+                      setDebateComplete(false);
+                      setMessages([]);
+                      setIsDebating(false);
+                    }
+                  }}
+                >
+                  Start Another Debate
+                </Button>
+              </div>
             </motion.section>
           )}
         </div>
