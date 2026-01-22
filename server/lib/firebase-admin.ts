@@ -34,8 +34,8 @@ export function initializeFirebaseAdmin(): admin.app.App {
             console.warn("⚠ FIREBASE_SERVICE_ACCOUNT environment variable not set");
         }
 
-        // Priority 2: Try to get service account path from environment
-        const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+        // Priority 2: Try to get service account path from environment or use default filename
+        const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "firebase-service-account.json";
 
         if (serviceAccountPath) {
             const absolutePath = path.isAbsolute(serviceAccountPath)
@@ -43,7 +43,7 @@ export function initializeFirebaseAdmin(): admin.app.App {
                 : path.resolve(process.cwd(), serviceAccountPath);
 
             if (fs.existsSync(absolutePath)) {
-                console.log("Attempting to initialize Firebase Admin with service account file:", serviceAccountPath);
+                console.log("Attempting to initialize Firebase Admin with service account file:", absolutePath);
                 const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, "utf8"));
 
                 firebaseApp = admin.initializeApp({
@@ -52,7 +52,7 @@ export function initializeFirebaseAdmin(): admin.app.App {
 
                 console.log("✓ Firebase Admin initialized with service account file");
                 return firebaseApp;
-            } else {
+            } else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
                 console.warn(`⚠ Service account file not found at: ${absolutePath}`);
             }
         }
