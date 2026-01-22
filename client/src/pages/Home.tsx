@@ -348,7 +348,7 @@ export default function Home() {
                 provider={agent1.provider}
                 model={agent1.model}
                 apiKey={agent1.apiKey}
-                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.0-flash-exp" : agent1.model })}
+                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : agent1.model })}
                 onModelChange={(val) => setAgent1({ ...agent1, model: val })}
                 onApiKeyChange={(val) => setAgent1({ ...agent1, apiKey: val })}
               />
@@ -358,7 +358,7 @@ export default function Home() {
                 provider={agent2.provider}
                 model={agent2.model}
                 apiKey={agent2.apiKey}
-                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.0-flash-exp" : agent2.model })}
+                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : agent2.model })}
                 onModelChange={(val) => setAgent2({ ...agent2, model: val })}
                 onApiKeyChange={(val) => setAgent2({ ...agent2, apiKey: val })}
               />
@@ -368,7 +368,7 @@ export default function Home() {
                 provider={agent3.provider}
                 model={agent3.model}
                 apiKey={agent3.apiKey}
-                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.0-flash-exp" : agent3.model })}
+                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : agent3.model })}
                 onModelChange={(val) => setAgent3({ ...agent3, model: val })}
                 onApiKeyChange={(val) => setAgent3({ ...agent3, apiKey: val })}
               />
