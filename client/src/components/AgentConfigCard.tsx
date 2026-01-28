@@ -58,6 +58,7 @@ export default function AgentConfigCard({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="builtin">Built-in AI (Uses Credits)</SelectItem>
+              <SelectItem value="huggingface">Uncensored (Uses Credits)</SelectItem>
               <SelectItem value="openai">ChatGPT</SelectItem>
               <SelectItem value="gemini">Gemini</SelectItem>
               <SelectItem value="perplexity">Perplexity</SelectItem>
@@ -71,14 +72,14 @@ export default function AgentConfigCard({
           <Input
             id={`model-${agentNumber}`}
             placeholder="e.g., gpt-4o"
-            value={provider === "builtin" ? "gemini-2.0-flash" : model}
+            value={provider === "builtin" ? "gemini-2.0-flash" : provider === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : model}
             onChange={(e) => onModelChange(e.target.value)}
-            disabled={provider === "builtin"}
+            disabled={provider === "builtin" || provider === "huggingface"}
             data-testid={`input-model-${agentNumber}`}
           />
         </div>
 
-        {provider !== "builtin" ? (
+        {provider !== "builtin" && provider !== "huggingface" ? (
           <div className="space-y-2">
             <Label htmlFor={`api-key-${agentNumber}`}>API Key</Label>
             <Input

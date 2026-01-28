@@ -2,6 +2,7 @@ import { callOpenAI } from "./openai.js";
 import { callGemini } from "./gemini.js";
 import { callPerplexity } from "./perplexity.js";
 import { callCustomAPI } from "./custom.js";
+import { callHuggingFace } from "./huggingface.js";
 import type { AgentConfig } from "@shared/schema.js";
 
 export async function callProvider(
@@ -13,19 +14,22 @@ export async function callProvider(
     switch (agent.provider) {
       case "openai":
         return await callOpenAI(agent.apiKey, agent.model, systemPrompt, conversationHistory);
-      
+
       case "gemini":
         return await callGemini(agent.apiKey, agent.model, systemPrompt, conversationHistory);
-      
+
       case "perplexity":
         return await callPerplexity(agent.apiKey, agent.model, systemPrompt, conversationHistory);
-      
+
+      case "huggingface":
+        return await callHuggingFace(agent.apiKey, agent.model, systemPrompt, conversationHistory);
+
       case "custom":
         if (!agent.customEndpoint) {
           throw new Error("Custom endpoint is required for custom provider");
         }
         return await callCustomAPI(agent.apiKey, agent.customEndpoint, systemPrompt, conversationHistory);
-      
+
       default:
         throw new Error(`Unsupported provider: ${agent.provider}`);
     }

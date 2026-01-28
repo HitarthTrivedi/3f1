@@ -212,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedConfig = debateConfigSchema.parse(req.body);
 
       // Check for Built-in usage
-      const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin");
+      const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin" || a.provider === "huggingface");
 
       if (!usesCredits) {
         // BYOK Flow: Verify all have keys
@@ -281,6 +281,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               apiKey: process.env.GEMINI_API_KEY || "" // Inject env var
             };
           }
+          if (agent.provider === "huggingface") {
+            return {
+              ...agent,
+              apiKey: process.env.HUGGINGFACE_API_KEY || ""
+            };
+          }
           // Ensure other agents have keys (already checked generally, but safe to keep as is)
           return agent;
         });
@@ -330,6 +336,7 @@ function getSystemKey(provider: string): string | undefined {
     case "openai": return process.env.OPENAI_API_KEY;
     case "gemini": return process.env.GEMINI_API_KEY;
     case "perplexity": return process.env.PERPLEXITY_API_KEY;
+    case "huggingface": return process.env.HUGGINGFACE_API_KEY;
     default: return undefined;
   }
 }

@@ -46,7 +46,7 @@ export default function Home() {
   });
 
   const agents = [agent1, agent2, agent3];
-  const usesCredits = agents.some(a => a.provider === "builtin");
+  const usesCredits = agents.some(a => a.provider === "builtin" || a.provider === "huggingface");
 
   const handleStartDebate = async () => {
     if (!agent1.provider || !agent2.provider || !agent3.provider) {
@@ -58,7 +58,17 @@ export default function Home() {
       return;
     }
 
-    if (!agent1.model || !agent2.model || !agent3.model) {
+    const getModel = (agent: AgentConfig) => {
+      if (agent.provider === "builtin") return "gemini-2.0-flash";
+      if (agent.provider === "huggingface") return "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai";
+      return agent.model;
+    };
+
+    const model1 = getModel(agent1);
+    const model2 = getModel(agent2);
+    const model3 = getModel(agent3);
+
+    if (!model1 || !model2 || !model3) {
       toast({
         title: "Model selection required",
         description: "Please specify a model for each agent.",
@@ -69,10 +79,10 @@ export default function Home() {
 
     // --- Refined Subscription Flow: Built-in vs BYOK ---
     const agents = [agent1, agent2, agent3];
-    const usesCredits = agents.some(a => a.provider === "builtin");
+    const usesCredits = agents.some(a => a.provider === "builtin" || a.provider === "huggingface");
 
     // Check keys for non-builtin agents
-    if (agents.some(a => a.provider !== "builtin" && !a.apiKey)) {
+    if (agents.some(a => a.provider !== "builtin" && a.provider !== "huggingface" && !a.apiKey)) {
       toast({
         title: "API keys required",
         description: "Please provide API keys for external providers, or use Built-in AI.",
@@ -91,7 +101,7 @@ export default function Home() {
         if (!free && user.credits < cost) {
           toast({
             title: "Insufficient Credits",
-            description: "You need 10 credits to use Built-in AI. Please buy more or use your own keys.",
+            description: "You need 10 credits to use Built-in/Uncensored AI. Please buy more or use your own keys.",
             variant: "destructive"
           });
           return;
@@ -127,19 +137,19 @@ export default function Home() {
             {
               name: "Agent 1",
               provider: agent1.provider,
-              model: agent1.model,
+              model: model1,
               apiKey: agent1.apiKey,
             },
             {
               name: "Agent 2",
               provider: agent2.provider,
-              model: agent2.model,
+              model: model2,
               apiKey: agent2.apiKey,
             },
             {
               name: "Agent 3",
               provider: agent3.provider,
-              model: agent3.model,
+              model: model3,
               apiKey: agent3.apiKey,
             },
           ],
@@ -348,7 +358,7 @@ export default function Home() {
                 provider={agent1.provider}
                 model={agent1.model}
                 apiKey={agent1.apiKey}
-                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : agent1.model })}
+                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent1.model })}
                 onModelChange={(val) => setAgent1({ ...agent1, model: val })}
                 onApiKeyChange={(val) => setAgent1({ ...agent1, apiKey: val })}
               />
@@ -358,7 +368,7 @@ export default function Home() {
                 provider={agent2.provider}
                 model={agent2.model}
                 apiKey={agent2.apiKey}
-                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : agent2.model })}
+                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent2.model })}
                 onModelChange={(val) => setAgent2({ ...agent2, model: val })}
                 onApiKeyChange={(val) => setAgent2({ ...agent2, apiKey: val })}
               />
@@ -368,7 +378,7 @@ export default function Home() {
                 provider={agent3.provider}
                 model={agent3.model}
                 apiKey={agent3.apiKey}
-                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : agent3.model })}
+                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent3.model })}
                 onModelChange={(val) => setAgent3({ ...agent3, model: val })}
                 onApiKeyChange={(val) => setAgent3({ ...agent3, apiKey: val })}
               />

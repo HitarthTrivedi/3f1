@@ -37,7 +37,7 @@ export type Transaction = typeof transactions.$inferSelect;
 
 export const agentConfigSchema = z.object({
   name: z.string(),
-  provider: z.enum(["openai", "gemini", "perplexity", "custom", "builtin"]),
+  provider: z.enum(["openai", "gemini", "perplexity", "custom", "builtin", "huggingface"]),
   model: z.string(),
   apiKey: z.string(),
   customEndpoint: z.string().optional(),
