@@ -7,4 +7,4 @@ vite.config.ts.*
 .env
 
 # Firebase service account
-firebase-service-account.json
+firebase_service_account.json
