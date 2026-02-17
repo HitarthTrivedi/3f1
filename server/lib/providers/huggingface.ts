@@ -1,4 +1,4 @@
-
+/*
 export async function callHuggingFace(
     apiKey: string,
     model: string,
@@ -49,3 +49,4 @@ export async function callHuggingFace(
         throw error;
     }
 }
+*/

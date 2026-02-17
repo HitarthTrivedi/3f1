@@ -58,7 +58,8 @@ export default function AgentConfigCard({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="builtin">Built-in AI (Uses Credits)</SelectItem>
-              <SelectItem value="huggingface">Uncensored (Uses Credits)</SelectItem>
+              {/* <SelectItem value="huggingface">Uncensored (Uses Credits)</SelectItem> */}
+              <SelectItem value="huggingface" disabled>Uncensored (Coming Soon)</SelectItem>
               <SelectItem value="openai">ChatGPT</SelectItem>
               <SelectItem value="gemini">Gemini</SelectItem>
               <SelectItem value="perplexity">Perplexity</SelectItem>

@@ -7,6 +7,7 @@ import AgentConfigCard from "@/components/AgentConfigCard";
 import DebateTopicInput from "@/components/DebateTopicInput";
 import DebateFeed, { type Message } from "@/components/DebateFeed";
 import DownloadSection from "@/components/DownloadSection";
+import ListenUpButton from "@/components/ListenUpButton";
 import PaymentModal from "@/components/PaymentModal";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -101,7 +102,7 @@ export default function Home() {
         if (!free && user.credits < cost) {
           toast({
             title: "Insufficient Credits",
-            description: "You need 10 credits to use Built-in/Uncensored AI. Please buy more or use your own keys.",
+            description: "You need 10 credits to use Built-in AI. Please buy more or use your own keys.",
             variant: "destructive"
           });
           return;
@@ -306,177 +307,193 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" data-testid="button-back">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-black font-logo" data-testid="text-logo">3F1</h1>
-              <p className="text-sm text-muted-foreground">Configure & Debate</p>
-            </div>
-          </div>
+    <div className="min-h-screen relative overflow-hidden">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover z-0"
+      >
+        <source src="/flow_gradient.mp4" type="video/mp4" />
+      </video>
 
-          <div className="flex items-center gap-2">
-            {user ? (
-              <div className="flex items-center gap-3">
-                <div className="text-right hidden sm:block">
-                  <div className="text-sm font-medium">Credits: {user.credits}</div>
-                  <div className="text-xs text-muted-foreground">Free Prompts: {user.freePrompts}</div>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => setShowPaymentModal(true)}>
-                  <CreditCard className="h-4 w-4 mr-1" />
-                  Buy Credits
+      <div className="relative z-10 min-h-screen bg-background/40 backdrop-blur-[2px]">
+        <header className="border-b bg-background/50 backdrop-blur-md sticky top-0 z-20">
+          <div className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <Button variant="ghost" size="icon" data-testid="button-back">
+                  <ArrowLeft className="w-5 h-5" />
                 </Button>
-                <Button size="sm" variant="ghost" onClick={signOut}>Logout</Button>
-              </div>
-            ) : (
-              <Link href="/auth">
-                <Button size="sm">Login / Register</Button>
               </Link>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-12">
-        <div className="space-y-12">
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold mb-8">Configure Agents</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <AgentConfigCard
-                agentNumber={1}
-                emoji="🤖"
-                provider={agent1.provider}
-                model={agent1.model}
-                apiKey={agent1.apiKey}
-                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent1.model })}
-                onModelChange={(val) => setAgent1({ ...agent1, model: val })}
-                onApiKeyChange={(val) => setAgent1({ ...agent1, apiKey: val })}
-              />
-              <AgentConfigCard
-                agentNumber={2}
-                emoji="🦉"
-                provider={agent2.provider}
-                model={agent2.model}
-                apiKey={agent2.apiKey}
-                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent2.model })}
-                onModelChange={(val) => setAgent2({ ...agent2, model: val })}
-                onApiKeyChange={(val) => setAgent2({ ...agent2, apiKey: val })}
-              />
-              <AgentConfigCard
-                agentNumber={3}
-                emoji="🦊"
-                provider={agent3.provider}
-                model={agent3.model}
-                apiKey={agent3.apiKey}
-                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent3.model })}
-                onModelChange={(val) => setAgent3({ ...agent3, model: val })}
-                onApiKeyChange={(val) => setAgent3({ ...agent3, apiKey: val })}
-              />
+              <div>
+                <h1 className="text-2xl font-black font-logo" data-testid="text-logo">3F1</h1>
+                <p className="text-sm text-muted-foreground">Configure & Debate</p>
+              </div>
             </div>
-          </motion.section>
 
-          <motion.section
-            className="max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <DebateTopicInput
-              topic={topic}
-              onTopicChange={setTopic}
-              onStartDebate={handleStartDebate}
-              isDebating={isDebating}
-              startButtonText={
-                !usesCredits
-                  ? "Start Debate" // No cost for external keys
-                  : !user
-                    ? "Start Debate (1 Free)"
-                    : user.freePrompts > 0
-                      ? `Start Debate (${user.freePrompts} Free)`
-                      : "Start Debate (10 Credits)"
-              }
-              isStartDisabled={
-                // Disable if user logged in, no free prompts, and insufficient credits ONLY if using credits
-                !!(usesCredits && user && user.freePrompts <= 0 && user.credits < 10)
-              }
-            />
-            {/* Adding an overlay or message if credits low, or modifying component. 
+            <div className="flex items-center gap-2">
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <div className="text-right hidden sm:block">
+                    <div className="text-sm font-medium">Credits: {user.credits}</div>
+                    <div className="text-xs text-muted-foreground">Free Prompts: {user.freePrompts}</div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setShowPaymentModal(true)}>
+                    <CreditCard className="h-4 w-4 mr-1" />
+                    Buy Credits
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={signOut}>Logout</Button>
+                </div>
+              ) : (
+                <Link href="/auth">
+                  <Button size="sm">Login / Register</Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto px-4 py-12">
+          <div className="space-y-12">
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2 className="text-3xl font-bold mb-8">Configure Agents</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <AgentConfigCard
+                  agentNumber={1}
+                  emoji="🤖"
+                  provider={agent1.provider}
+                  model={agent1.model}
+                  apiKey={agent1.apiKey}
+                  onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent1.model })}
+                  onModelChange={(val) => setAgent1({ ...agent1, model: val })}
+                  onApiKeyChange={(val) => setAgent1({ ...agent1, apiKey: val })}
+                />
+                <AgentConfigCard
+                  agentNumber={2}
+                  emoji="🦉"
+                  provider={agent2.provider}
+                  model={agent2.model}
+                  apiKey={agent2.apiKey}
+                  onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent2.model })}
+                  onModelChange={(val) => setAgent2({ ...agent2, model: val })}
+                  onApiKeyChange={(val) => setAgent2({ ...agent2, apiKey: val })}
+                />
+                <AgentConfigCard
+                  agentNumber={3}
+                  emoji="🦊"
+                  provider={agent3.provider}
+                  model={agent3.model}
+                  apiKey={agent3.apiKey}
+                  onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent3.model })}
+                  onModelChange={(val) => setAgent3({ ...agent3, model: val })}
+                  onApiKeyChange={(val) => setAgent3({ ...agent3, apiKey: val })}
+                />
+              </div>
+            </motion.section>
+
+            <motion.section
+              className="max-w-3xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <DebateTopicInput
+                topic={topic}
+                onTopicChange={setTopic}
+                onStartDebate={handleStartDebate}
+                isDebating={isDebating}
+                startButtonText={
+                  !usesCredits
+                    ? "Start Debate" // No cost for external keys
+                    : !user
+                      ? "Start Debate (1 Free)"
+                      : user.freePrompts > 0
+                        ? `Start Debate (${user.freePrompts} Free)`
+                        : "Start Debate (10 Credits)"
+                }
+                isStartDisabled={
+                  // Disable if user logged in, no free prompts, and insufficient credits ONLY if using credits
+                  !!(usesCredits && user && user.freePrompts <= 0 && user.credits < 10)
+                }
+              />
+              {/* Adding an overlay or message if credits low, or modifying component. 
                 For now, I'll assume I need to modify DebateTopicInput or wrapping it.
                 Wait, I can't check DebateTopicInput content easily without reading it. 
                 I will read it first to be safe, but typically I should pass props. 
                 Let's assume I need to modify DebateTopicInput to accept a custom label/disabled prop.
             */}
-          </motion.section>
-
-          {messages.length > 0 && (
-            <motion.section
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <DebateFeed messages={messages} totalRounds={5} />
             </motion.section>
-          )}
 
-          {debateComplete && (
-            <motion.section
-              className="max-w-3xl mx-auto space-y-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <DownloadSection
-                onDownloadJson={handleDownloadJson}
-                onDownloadText={handleDownloadText}
-              />
+            {messages.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <DebateFeed messages={messages} totalRounds={5} />
+              </motion.section>
+            )}
 
-              <div className="flex justify-center">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    // If user is anonymous, "Another Debate" means they likely used their 1 free prompt.
-                    // The requirement says: "when user clicks it, he will get a login or register button"
-                    if (!user) {
-                      toast({
-                        title: "Registration Required",
-                        description: "Please register to continue debating.",
-                      });
-                      setLocation("/auth");
-                      return;
-                    }
+            {debateComplete && (
+              <motion.section
+                className="max-w-3xl mx-auto space-y-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <DownloadSection
+                  onDownloadJson={handleDownloadJson}
+                  onDownloadText={handleDownloadText}
+                />
 
-                    // If using credits, we reload to ensure credit balance is updated from server
-                    // This satisfies "redirects to the credits" (or refreshes UI) ONLY when clicking this.
-                    if (usesCredits) {
-                      window.location.reload();
-                    } else {
-                      // If using external keys, just reset state without reload
-                      setDebateComplete(false);
-                      setMessages([]);
-                      setIsDebating(false);
-                    }
-                  }}
-                >
-                  Start Another Debate
-                </Button>
-              </div>
-            </motion.section>
-          )}
-        </div>
-      </main>
+                <div className="flex justify-center">
+                  <ListenUpButton messages={messages} />
+                </div>
 
-      {/* Payment Modal */}
-      <PaymentModal open={showPaymentModal} onOpenChange={setShowPaymentModal} />
+                <div className="flex justify-center">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      // If user is anonymous, "Another Debate" means they likely used their 1 free prompt.
+                      // The requirement says: "when user clicks it, he will get a login or register button"
+                      if (!user) {
+                        toast({
+                          title: "Registration Required",
+                          description: "Please register to continue debating.",
+                        });
+                        setLocation("/auth");
+                        return;
+                      }
+
+                      // If using credits, we reload to ensure credit balance is updated from server
+                      // This satisfies "redirects to the credits" (or refreshes UI) ONLY when clicking this.
+                      if (usesCredits) {
+                        window.location.reload();
+                      } else {
+                        // If using external keys, just reset state without reload
+                        setDebateComplete(false);
+                        setMessages([]);
+                        setIsDebating(false);
+                      }
+                    }}
+                  >
+                    Start Another Debate
+                  </Button>
+                </div>
+              </motion.section>
+            )}
+          </div>
+        </main>
+
+        {/* Payment Modal */}
+        <PaymentModal open={showPaymentModal} onOpenChange={setShowPaymentModal} />
+      </div>
     </div>
   );
 }

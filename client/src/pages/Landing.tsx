@@ -1,101 +1,162 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { AgentVisual } from "@/components/AgentVisual";
 import { Footer } from "@/components/Footer";
 import MouseFollowerButton from "@/components/MouseFollowerButton";
+import { useRef } from "react";
+
+// ============================================
+// SCROLL DISTORTION TEXT COMPONENT
+// ============================================
+// This component creates the horizontal stretch effect when scrolling
+
+function ScrollDistortionText({
+  text,
+  className = "",
+  stretchFactor = 4,
+  blurAmount = 8,
+}: {
+  text: string;
+  className?: string;
+  stretchFactor?: number;
+  blurAmount?: number;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
+
+  const scaleX = useTransform(smoothProgress, [0, 1], [1, stretchFactor]);
+  const scaleY = useTransform(smoothProgress, [0, 1], [1, 0.9]);
+  const blurValue = useTransform(
+    smoothProgress,
+    [0, 0.5, 1],
+    [0, blurAmount, blurAmount * 0.6]
+  );
+
+  return (
+    <div ref={containerRef} className="relative">
+      <motion.div
+        className={`origin-center whitespace-nowrap will-change-transform ${className}`}
+        style={{
+          scaleX,
+          scaleY,
+          filter: useTransform(blurValue, (v) => `blur(${v}px)`),
+        }}
+      >
+        {text}
+      </motion.div>
+    </div>
+  );
+}
+
+// ============================================
+// MAIN LANDING PAGE
+// ============================================
 
 export default function Landing() {
   const scrollToNext = () => {
-    window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+    window.scrollBy({ top: window.innerHeight, behavior: "smooth" });
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      {/* Section 1: Hero */}
-      <section className="min-h-screen flex items-center justify-center px-4 relative">
-        <div className="max-w-5xl w-full z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center space-y-16"
-          >
-            <div className="space-y-8">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                <h1
-                  className="text-9xl font-black font-logo tracking-tighter mb-6 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent"
-                  data-testid="text-logo"
-                >
-                  3F1
-                </h1>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="space-y-6"
-              >
-                <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
-                  Three Faction Intelligence
-                </h2>
-                <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
-                  Watch three AI agents engage in structured debates on any topic
-                </p>
-              </motion.div>
-            </div>
-
+      {/* Section 1: Hero with 3F1 Scroll Distortion Effect */}
+      <section className="h-[200vh] relative">
+        <div className="sticky top-0 h-screen flex items-center justify-center px-4">
+          <div className="max-w-5xl w-full z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+              transition={{ duration: 0.6 }}
+              className="text-center space-y-16"
             >
-              <Link href="/debate">
+              <div className="space-y-8">
+                {/* 3F1 with scroll distortion effect */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                >
+                  <ScrollDistortionText
+                    text="3F1"
+                    className="text-9xl font-black font-logo tracking-tighter bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent"
+                    stretchFactor={5}
+                    blurAmount={10}
+                  />
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="space-y-6"
+                >
+                  <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+                    Three Faction Intelligence
+                  </h2>
+                  <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
+                    Watch three AI agents engage in structured debates on any
+                    topic
+                  </p>
+                </motion.div>
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+              >
+                <Link href="/debate">
+                  <Button
+                    size="lg"
+                    className="gap-3 px-10 text-lg h-16 shadow-lg hover:shadow-xl transition-all"
+                    data-testid="button-start-debate"
+                  >
+                    Start a Debate
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
                 <Button
                   size="lg"
-                  className="gap-3 px-10 text-lg h-16 shadow-lg hover:shadow-xl transition-all"
-                  data-testid="button-start-debate"
+                  variant="outline"
+                  className="gap-3 px-10 text-lg h-16"
+                  onClick={scrollToNext}
                 >
-                  Start a Debate
-                  <ArrowRight className="w-5 h-5" />
+                  Learn More
+                  <ChevronDown className="w-5 h-5" />
                 </Button>
-              </Link>
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-3 px-10 text-lg h-16"
-                onClick={scrollToNext}
-              >
-                Learn More
-                <ChevronDown className="w-5 h-5" />
-              </Button>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        </div>
+          </div>
 
-        {/* Scroll indicator */}
-        <motion.button
-          onClick={scrollToNext}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <ChevronDown className="w-8 h-8" />
-        </motion.button>
+          {/* Scroll indicator */}
+          <motion.button
+            onClick={scrollToNext}
+            className="absolute bottom-12 left-1/2 -translate-x-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <ChevronDown className="w-8 h-8" />
+          </motion.button>
+        </div>
       </section>
 
       {/* Section 2: How It Works (Split Screen) */}
       <section className="min-h-screen flex items-center justify-center px-4 py-20 bg-card/10">
         <div className="max-w-7xl w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
             {/* Left Column: Content */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -109,7 +170,8 @@ export default function Landing() {
                   How It Works
                 </h2>
                 <p className="text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 font-light">
-                  Three distinct AI personalities debate any topic through structured rounds, creating a dynamic 3D conversation.
+                  Three distinct AI personalities debate any topic through
+                  structured rounds, creating a dynamic 3D conversation.
                 </p>
               </div>
 
@@ -142,12 +204,18 @@ export default function Landing() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     className="flex items-center gap-6 p-4 rounded-xl border bg-card/40 hover:bg-card/60 transition-colors"
                   >
-                    <span className={`text-4xl font-bold bg-gradient-to-r ${agent.color} bg-clip-text text-transparent w-16 text-center`}>
+                    <span
+                      className={`text-4xl font-bold bg-gradient-to-r ${agent.color} bg-clip-text text-transparent w-16 text-center`}
+                    >
                       {agent.number}
                     </span>
                     <div>
-                      <h3 className="text-xl font-semibold mb-1">{agent.title}</h3>
-                      <p className="text-sm text-muted-foreground">{agent.description}</p>
+                      <h3 className="text-xl font-semibold mb-1">
+                        {agent.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {agent.description}
+                      </p>
                     </div>
                   </motion.div>
                 ))}
@@ -162,15 +230,10 @@ export default function Landing() {
               transition={{ duration: 0.8 }}
               className="relative flex justify-center lg:justify-end"
             >
-              {/* 
-                 We wrap AgentVisual to ensure it fits nicely. 
-                 The component itself has max-width logic, but we can constrain it here if needed.
-               */}
               <div className="w-full max-w-2xl transform scale-90 lg:scale-100">
                 <AgentVisual />
               </div>
             </motion.div>
-
           </div>
         </div>
       </section>
@@ -197,15 +260,17 @@ export default function Landing() {
             <div className="space-y-10">
               <div className="p-12 rounded-2xl border bg-card space-y-8">
                 <p className="text-xl text-foreground leading-relaxed font-light">
-                  3F1 (Three Faction Intelligence) is an experimental platform that brings together
-                  three AI agents with distinct personalities to debate any topic you choose.
-                  Each agent brings a unique perspective, creating a rich, multi-dimensional
-                  exploration of ideas.
+                  3F1 (Three Faction Intelligence) is an experimental platform
+                  that brings together three AI agents with distinct
+                  personalities to debate any topic you choose. Each agent
+                  brings a unique perspective, creating a rich,
+                  multi-dimensional exploration of ideas.
                 </p>
                 <p className="text-xl text-foreground leading-relaxed font-light">
-                  Through 5 structured rounds, watch as the Analyst breaks down complex topics,
-                  the Critic challenges assumptions, and the Synthesizer weaves insights together
-                  into actionable conclusions.
+                  Through 5 structured rounds, watch as the Analyst breaks down
+                  complex topics, the Critic challenges assumptions, and the
+                  Synthesizer weaves insights together into actionable
+                  conclusions.
                 </p>
               </div>
 
@@ -269,9 +334,10 @@ export default function Landing() {
                   Alpha.kore
                 </h3>
                 <p className="text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto">
-                  A passionate developer exploring the intersection of AI and collaborative
-                  intelligence. 3F1 is an experiment in creating meaningful AI interactions
-                  that go beyond simple question-and-answer.
+                  A passionate developer exploring the intersection of AI and
+                  collaborative intelligence. 3F1 is an experiment in creating
+                  meaningful AI interactions that go beyond simple
+                  question-and-answer.
                 </p>
               </div>
             </div>
@@ -300,19 +366,16 @@ export default function Landing() {
 
             <div className="p-10 rounded-2xl border bg-card space-y-8">
               <p className="text-xl text-muted-foreground font-light">
-                Have ideas for improvements? Found a bug? Or just want to share your
-                experience? I'd love to hear from you.
+                Have ideas for improvements? Found a bug? Or just want to share
+                your experience? I'd love to hear from you.
               </p>
 
-              <a
-                href="mailto:hitartht318@gmail.com"
-                className="inline-block"
-              >
+              <a href="mailto:alpha.kore25@gmail.com" className="inline-block">
                 <Button
                   size="lg"
                   className="gap-3 px-10 text-xl h-16 shadow-lg hover:shadow-xl transition-all"
                 >
-                  hitartht318@gmail.com
+                  alpha.kore25@gmail.com
                 </Button>
               </a>
             </div>

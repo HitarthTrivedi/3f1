@@ -107,6 +107,8 @@ function createUserPrompt(
   return `Previous arguments:\n${historyText}\n\nNow it's your turn, ${agentName}. Respond to the previous arguments using bulleted points. Build on strong points or challenge weak ones. Keep it concise.`;
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export async function runDebate(
   topic: string,
   agents: AgentConfig[],
@@ -116,6 +118,11 @@ export async function runDebate(
 
   for (let round = 1; round <= TOTAL_ROUNDS; round++) {
     for (let i = 0; i < agents.length; i++) {
+      // Add delay between agents to avoid rate limits
+      if (round > 1 || i > 0) {
+        await sleep(5000);
+      }
+
       const agent = agents[i];
       const systemPrompt = createSystemPrompt(agent.name, i, agent, topic, round);
       const userPrompt = createUserPrompt(history, round, agent.name);

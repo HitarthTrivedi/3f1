@@ -212,7 +212,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedConfig = debateConfigSchema.parse(req.body);
 
       // Check for Built-in usage
-      const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin" || a.provider === "huggingface");
+      // const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin" || a.provider === "huggingface");
+      const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin");
 
       if (!usesCredits) {
         // BYOK Flow: Verify all have keys
@@ -275,18 +276,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Inject System Keys and Map Provider
         validatedConfig.agents = validatedConfig.agents.map(agent => {
           if (agent.provider === "builtin") {
+            const selectedKey = getRandomGeminiKey();
+            console.log(`[Built-in AI] Allotted key: ${selectedKey.substring(0, 8)}...`);
             return {
               ...agent,
               provider: "gemini", // Map to underlying provider
-              apiKey: process.env.GEMINI_API_KEY || "" // Inject env var
+              apiKey: selectedKey
             };
           }
+          /*
           if (agent.provider === "huggingface") {
             return {
               ...agent,
               apiKey: process.env.HUGGINGFACE_API_KEY || ""
             };
           }
+          */
           // Ensure other agents have keys (already checked generally, but safe to keep as is)
           return agent;
         });
@@ -326,15 +331,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // --- Speechify TTS Route ---
+  const AGENT_VOICES: Record<number, string> = {
+    0: "george",   // Agent 1 (Analyst) — calm, measured
+    1: "henry",    // Agent 2 (Critic) — sharp, direct
+    2: "kristy",   // Agent 3 (Synthesizer) — balanced, warm
+  };
+
+  app.post("/api/tts/generate", optionalAuth, async (req, res) => {
+    try {
+      const speechifyKey = process.env.SPEECHIFY_API_KEY;
+      if (!speechifyKey || speechifyKey.includes("_here")) {
+        return res.status(500).json({ error: "Speechify API key not configured on server." });
+      }
+
+      // Require authentication for TTS
+      if (!req.firebaseUser) {
+        return res.status(401).json({ error: "Login required to use Listen Up." });
+      }
+
+      const firebaseUser = req.firebaseUser;
+      const ttsUser = await storage.getUserByFirebaseUid(firebaseUser.uid);
+
+      if (!ttsUser) {
+        return res.status(404).json({ error: "User not found. Please sign in again." });
+      }
+
+      // Deduct 5 credits for TTS
+      const TTS_CREDIT_COST = 5;
+      if (ttsUser.credits < TTS_CREDIT_COST) {
+        return res.status(402).json({ error: `Insufficient credits. Listen Up requires ${TTS_CREDIT_COST} credits.` });
+      }
+
+      await storage.updateUserCredits(ttsUser.id, ttsUser.credits - TTS_CREDIT_COST);
+      await storage.createTransaction({
+        userId: ttsUser.id,
+        type: "debit",
+        amount: -TTS_CREDIT_COST,
+        status: "completed",
+      });
+      console.log(`TTS credit deduction: ${ttsUser.email} -${TTS_CREDIT_COST} credits`);
+
+      const { messages } = req.body;
+      if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({ error: "No messages provided." });
+      }
+
+      // Process messages in chronological order, generating audio for each
+      const audioSegments: Array<{
+        agentName: string;
+        agentNumber: number;
+        round: number;
+        audioBase64: string;
+      }> = [];
+
+      for (const msg of messages) {
+        const voiceId = AGENT_VOICES[msg.agentNumber] || "george";
+
+        try {
+          // Strip markdown formatting for cleaner TTS
+          const cleanText = msg.message
+            .replace(/[*_#`~]/g, "")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+
+          if (!cleanText) continue;
+
+          const speechifyResponse = await fetch("https://api.sws.speechify.com/v1/audio/speech", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${speechifyKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              input: cleanText.substring(0, 5000), // Speechify has input limits
+              voice_id: voiceId,
+              audio_format: "mp3",
+            }),
+          });
+
+          if (!speechifyResponse.ok) {
+            const errText = await speechifyResponse.text();
+            console.error(`Speechify error for ${msg.agentName}:`, errText);
+            continue; // Skip this segment but continue with others
+          }
+
+          const result = await speechifyResponse.json() as any;
+
+          audioSegments.push({
+            agentName: msg.agentName,
+            agentNumber: msg.agentNumber,
+            round: msg.round,
+            audioBase64: result.audio_data, // Speechify returns base64 audio_data
+          });
+
+        } catch (ttsError) {
+          console.error(`TTS error for ${msg.agentName}:`, ttsError);
+          continue;
+        }
+      }
+
+      if (audioSegments.length === 0) {
+        return res.status(500).json({ error: "Failed to generate any audio segments." });
+      }
+
+      res.json({ segments: audioSegments });
+    } catch (error) {
+      console.error("TTS generation error:", error);
+      res.status(500).json({
+        error: "Failed to generate speech",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
+}
+
+function getRandomGeminiKey(): string {
+  const keys = [
+    process.env.GEMINI_API_KEY_1,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GEMINI_API_KEY_3
+  ].filter((key): key is string => !!key && key.length > 0 && !key.includes("_here"));
+
+  if (keys.length === 0) {
+    return process.env.GEMINI_API_KEY || "";
+  }
+
+  const randomIndex = Math.floor(Math.random() * keys.length);
+  return keys[randomIndex];
 }
 
 function getSystemKey(provider: string): string | undefined {
   // Simple helper to get env vars based on provider
   switch (provider.toLowerCase()) {
     case "openai": return process.env.OPENAI_API_KEY;
-    case "gemini": return process.env.GEMINI_API_KEY;
+    case "gemini": return getRandomGeminiKey();
     case "perplexity": return process.env.PERPLEXITY_API_KEY;
     case "huggingface": return process.env.HUGGINGFACE_API_KEY;
     default: return undefined;

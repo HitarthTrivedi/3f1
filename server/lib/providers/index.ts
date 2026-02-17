@@ -2,7 +2,7 @@ import { callOpenAI } from "./openai.js";
 import { callGemini } from "./gemini.js";
 import { callPerplexity } from "./perplexity.js";
 import { callCustomAPI } from "./custom.js";
-import { callHuggingFace } from "./huggingface.js";
+// import { callHuggingFace } from "./huggingface.js";
 import type { AgentConfig } from "@shared/schema.js";
 
 export async function callProvider(
@@ -21,8 +21,10 @@ export async function callProvider(
       case "perplexity":
         return await callPerplexity(agent.apiKey, agent.model, systemPrompt, conversationHistory);
 
+      /* 
       case "huggingface":
         return await callHuggingFace(agent.apiKey, agent.model, systemPrompt, conversationHistory);
+      */
 
       case "custom":
         if (!agent.customEndpoint) {
