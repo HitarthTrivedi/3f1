@@ -69,10 +69,28 @@ export default function Landing() {
     window.scrollBy({ top: window.innerHeight, behavior: "smooth" });
   };
 
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Section 1: Hero with 3F1 Scroll Distortion Effect */}
-      <section className="h-[200vh] relative">
+      <section ref={heroRef} className="h-[100vh] relative overflow-hidden">
+        <motion.div
+          style={{ opacity }}
+          className="absolute inset-0 z-0"
+        >
+          <img
+            src="/hero-bg.png"
+            alt="Hero Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-background/30" />
+        </motion.div>
         <div className="sticky top-0 h-screen flex items-center justify-center px-4">
           <div className="max-w-5xl w-full z-10">
             <motion.div
@@ -334,7 +352,7 @@ export default function Landing() {
                   Alpha.kore
                 </h3>
                 <p className="text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto">
-                  A passionate developer exploring the intersection of AI and
+                  A passionate group of developers exploring the intersection of AI and
                   collaborative intelligence. 3F1 is an experiment in creating
                   meaningful AI interactions that go beyond simple
                   question-and-answer.
