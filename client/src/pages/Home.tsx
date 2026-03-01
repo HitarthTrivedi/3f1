@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
-import { ArrowLeft, CreditCard } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AgentConfigCard from "@/components/AgentConfigCard";
 import DebateTopicInput from "@/components/DebateTopicInput";
@@ -11,6 +11,8 @@ import ListenUpButton from "@/components/ListenUpButton";
 import PaymentModal from "@/components/PaymentModal";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { Badge } from "@/components/ui/badge";
+import { Footer } from "@/components/Footer";
 
 interface AgentConfig {
   provider: string;
@@ -20,7 +22,7 @@ interface AgentConfig {
 
 export default function Home() {
   const { toast } = useToast();
-  const { user, signOut, getIdToken } = useAuth();
+  const { user, signOut, getIdToken, isLoading } = useAuth();
   const [_, setLocation] = useLocation();
   const [topic, setTopic] = useState("");
   const [isDebating, setIsDebating] = useState(false);
@@ -307,102 +309,159 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="fixed inset-0 w-full h-full object-cover z-0"
-      >
-        <source src="/flow_gradient.mp4" type="video/mp4" />
-      </video>
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground italic-primary overflow-x-hidden">
+      {/* Structural technical background grid */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
+        <div className="absolute top-10 left-10 text-[10px] font-black tracking-widest">[00:00] -- ORIGIN</div>
+        <div className="absolute top-10 right-10 text-[10px] font-black tracking-widest">INFRA // AX-01</div>
+        <div className="absolute bottom-10 left-10 text-[10px] font-black tracking-widest">3F1.OS_V2.0.4</div>
+        <div className="absolute bottom-10 right-10 text-[10px] font-black tracking-widest">TERMINAL // ACTIVE</div>
 
-      <div className="relative z-10 min-h-screen bg-background/40 backdrop-blur-[2px]">
-        <header className="border-b bg-background/50 backdrop-blur-md sticky top-0 z-20">
-          <div className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="icon" data-testid="button-back">
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-2xl font-black font-logo" data-testid="text-logo">3F1</h1>
-                <p className="text-sm text-muted-foreground">Configure & Debate</p>
+        {/* Vertical lines that span full height */}
+        <div className="absolute inset-y-0 left-[10%] w-px bg-foreground" />
+        <div className="absolute inset-y-0 left-[90%] w-px bg-foreground" />
+        <div className="absolute inset-y-0 left-1/2 w-px bg-foreground" />
+      </div>
+
+      {/* Decorative vertical lines for consistency with Hero */}
+      <div className="fixed inset-y-0 left-1/4 w-px bg-border/20 pointer-events-none hidden lg:block z-0" />
+      <div className="fixed inset-y-0 right-1/4 w-px bg-border/20 pointer-events-none hidden lg:block z-0" />
+
+      <header className="border-b border-foreground/10 bg-background sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link href="/">
+              <Button variant="outline" size="icon" className="rounded-none border-foreground/20 hover:border-foreground transition-all group" data-testid="button-back">
+                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <div className="relative">
+              <h1 className="text-3xl font-black tracking-tighter uppercase leading-none" data-testid="text-logo">
+                3F1 <span className="text-primary italic">—</span>
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Configure & Debate</p>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {user ? (
-                <div className="flex items-center gap-3">
-                  <div className="text-right hidden sm:block">
-                    <div className="text-sm font-medium">Credits: {user.credits}</div>
-                    <div className="text-xs text-muted-foreground">Free Prompts: {user.freePrompts}</div>
-                  </div>
-                  <Button size="sm" variant="outline" onClick={() => setShowPaymentModal(true)}>
-                    <CreditCard className="h-4 w-4 mr-1" />
-                    Buy Credits
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={signOut}>Logout</Button>
-                </div>
-              ) : (
-                <Link href="/auth">
-                  <Button size="sm">Login / Register</Button>
-                </Link>
-              )}
             </div>
           </div>
-        </header>
 
-        <main className="max-w-6xl mx-auto px-4 py-12">
-          <div className="space-y-12">
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-3xl font-bold mb-8">Configure Agents</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <AgentConfigCard
-                  agentNumber={1}
-                  emoji="🤖"
-                  provider={agent1.provider}
-                  model={agent1.model}
-                  apiKey={agent1.apiKey}
-                  onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent1.model })}
-                  onModelChange={(val) => setAgent1({ ...agent1, model: val })}
-                  onApiKeyChange={(val) => setAgent1({ ...agent1, apiKey: val })}
-                />
-                <AgentConfigCard
-                  agentNumber={2}
-                  emoji="🦉"
-                  provider={agent2.provider}
-                  model={agent2.model}
-                  apiKey={agent2.apiKey}
-                  onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent2.model })}
-                  onModelChange={(val) => setAgent2({ ...agent2, model: val })}
-                  onApiKeyChange={(val) => setAgent2({ ...agent2, apiKey: val })}
-                />
-                <AgentConfigCard
-                  agentNumber={3}
-                  emoji="🦊"
-                  provider={agent3.provider}
-                  model={agent3.model}
-                  apiKey={agent3.apiKey}
-                  onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent3.model })}
-                  onModelChange={(val) => setAgent3({ ...agent3, model: val })}
-                  onApiKeyChange={(val) => setAgent3({ ...agent3, apiKey: val })}
-                />
+          <div className="flex items-center gap-4">
+            <div className="hidden xl:flex flex-col items-end mr-8 border-r border-foreground/10 pr-8">
+              <span className="text-[8px] uppercase font-black tracking-[0.3em] opacity-30">Security Terminal</span>
+              <span className="text-[10px] uppercase font-black tracking-widest text-primary">Secure // Protocol 3F1.X</span>
+            </div>
+
+            {isLoading ? (
+              <div className="flex items-center gap-4 px-8 py-2 border border-foreground/10 bg-foreground/5 h-12">
+                <Loader2 className="w-4 h-4 animate-spin opacity-40" />
+                <span className="text-[10px] uppercase font-black tracking-[0.4em] opacity-30">Syncing Identity...</span>
               </div>
-            </motion.section>
+            ) : user ? (
+              <div className="flex items-center gap-6">
+                <div className="text-right hidden sm:block">
+                  <div className="text-[10px] uppercase tracking-widest font-black opacity-40">Wallet Info</div>
+                  <div className="text-sm font-bold">Credits: {user.credits}</div>
+                  <div className="text-[10px] text-primary uppercase font-bold">Free: {user.freePrompts}</div>
+                </div>
+                <Button
+                  size="sm"
+                  className="rounded-none bg-foreground text-background hover:bg-primary transition-colors font-bold uppercase text-[10px] tracking-widest h-10 px-6 shadow-[4px_4px_0px_0px_rgba(255,102,0,0.5)]"
+                  onClick={() => setShowPaymentModal(true)}
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Buy Credits
+                </Button>
+                <Button variant="ghost" className="rounded-none uppercase text-[10px] font-bold tracking-[0.2em] hover:text-primary transition-colors" onClick={signOut}>Logout</Button>
+              </div>
+            ) : (
+              <Link href="/auth">
+                <Button className="rounded-none bg-foreground text-background hover:bg-primary transition-colors font-bold uppercase text-xs tracking-widest h-12 px-8 shadow-[8px_8px_0px_0px_rgba(255,102,0,0.3)]">
+                  Login / Register —
+                </Button>
+              </Link>
+            )}
+          </div>
+        </div>
+      </header>
 
-            <motion.section
-              className="max-w-3xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-24">
+        <div className="space-y-40">
+          {/* SECTION 1: CONFIGURATION */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative"
+          >
+            <div className="absolute -left-12 top-0 text-[10px] font-black vertical-text opacity-10 tracking-[1em] uppercase hidden 2xl:block">
+              Deployment Mode // 01
+            </div>
+
+            <div className="flex flex-col mb-16 space-y-4">
+              <div className="inline-flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.4em]">
+                Step <span className="italic">01</span> <span className="w-12 h-px bg-primary" />
+              </div>
+              <h2 className="text-7xl font-black tracking-tighter uppercase leading-[0.9]">
+                Configure <br /><span className="text-stroke">Your Agents</span>
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-1 bg-foreground/5 p-1 border border-foreground/10">
+              <AgentConfigCard
+                agentNumber={1}
+                emoji="🤖"
+                provider={agent1.provider}
+                model={agent1.model}
+                apiKey={agent1.apiKey}
+                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent1.model })}
+                onModelChange={(val) => setAgent1({ ...agent1, model: val })}
+                onApiKeyChange={(val) => setAgent1({ ...agent1, apiKey: val })}
+              />
+              <AgentConfigCard
+                agentNumber={2}
+                emoji="🦉"
+                provider={agent2.provider}
+                model={agent2.model}
+                apiKey={agent2.apiKey}
+                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent2.model })}
+                onModelChange={(val) => setAgent2({ ...agent2, model: val })}
+                onApiKeyChange={(val) => setAgent2({ ...agent2, apiKey: val })}
+              />
+              <AgentConfigCard
+                agentNumber={3}
+                emoji="🦊"
+                provider={agent3.provider}
+                model={agent3.model}
+                apiKey={agent3.apiKey}
+                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent3.model })}
+                onModelChange={(val) => setAgent3({ ...agent3, model: val })}
+                onApiKeyChange={(val) => setAgent3({ ...agent3, apiKey: val })}
+              />
+            </div>
+          </motion.section>
+
+          {/* SECTION 2: TOPIC INPUT */}
+          <motion.section
+            className="max-w-4xl mx-auto w-full relative"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <div className="absolute -right-20 top-1/2 -translate-y-1/2 text-[10px] font-black vertical-text opacity-10 tracking-[1em] uppercase hidden 2xl:block">
+              Neural Thesis Process
+            </div>
+
+            <div className="flex items-center gap-4 mb-12">
+              <div className="h-px w-20 bg-primary/30" />
+              <span className="text-[10px] uppercase tracking-[0.5em] font-black text-primary opacity-60 whitespace-nowrap">Input Transmission</span>
+              <div className="h-px flex-1 bg-foreground/10" />
+            </div>
+
+            <div className="p-10 md:p-16 border-2 border-foreground bg-background shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] dark:shadow-[20px_20px_0px_0px_rgba(255,255,255,1)] relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-primary opacity-20" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-primary opacity-20" />
+
               <DebateTopicInput
                 topic={topic}
                 onTopicChange={setTopic}
@@ -410,90 +469,102 @@ export default function Home() {
                 isDebating={isDebating}
                 startButtonText={
                   !usesCredits
-                    ? "Start Debate" // No cost for external keys
+                    ? "Initialize Debate —"
                     : !user
-                      ? "Start Debate (1 Free)"
+                      ? "Initialize Debate (1 Free) —"
                       : user.freePrompts > 0
-                        ? `Start Debate (${user.freePrompts} Free)`
-                        : "Start Debate (10 Credits)"
+                        ? `Initialize Debate (${user.freePrompts} Free) —`
+                        : "Initialize Debate (10 Credits) —"
                 }
                 isStartDisabled={
-                  // Disable if user logged in, no free prompts, and insufficient credits ONLY if using credits
                   !!(usesCredits && user && user.freePrompts <= 0 && user.credits < 10)
                 }
               />
-              {/* Adding an overlay or message if credits low, or modifying component. 
-                For now, I'll assume I need to modify DebateTopicInput or wrapping it.
-                Wait, I can't check DebateTopicInput content easily without reading it. 
-                I will read it first to be safe, but typically I should pass props. 
-                Let's assume I need to modify DebateTopicInput to accept a custom label/disabled prop.
-            */}
-            </motion.section>
+            </div>
+          </motion.section>
 
-            {messages.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
+          {/* SECTION 3: FEED */}
+          {messages.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-20"
+            >
+              <div className="flex flex-col items-center text-center space-y-6">
+                <div className="flex items-center gap-4 w-full max-w-md">
+                  <div className="h-px flex-1 bg-primary/20" />
+                  <Badge variant="outline" className="rounded-none border-primary text-primary px-6 py-2 uppercase text-[10px] tracking-[0.5em] font-black bg-primary/5">Stream Active</Badge>
+                  <div className="h-px flex-1 bg-primary/20" />
+                </div>
+                <h2 className="text-5xl font-black uppercase tracking-tighter leading-tight">
+                  Intelligence <br /><span className="italic">Verification Feed</span>
+                </h2>
+              </div>
+              <div className="p-1 bg-foreground/5 border border-foreground/10">
                 <DebateFeed messages={messages} totalRounds={5} />
-              </motion.section>
-            )}
+              </div>
+            </motion.section>
+          )}
 
-            {debateComplete && (
-              <motion.section
-                className="max-w-3xl mx-auto space-y-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <DownloadSection
-                  onDownloadJson={handleDownloadJson}
-                  onDownloadText={handleDownloadText}
-                />
-
-                <div className="flex justify-center">
-                  <ListenUpButton messages={messages} />
+          {/* SECTION 4: COMPLETION & DOWNLOAD */}
+          {debateComplete && (
+            <motion.section
+              className="max-w-4xl mx-auto space-y-16"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="p-16 border-2 border-foreground/10 bg-muted/10 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
+                  <CreditCard size={200} />
                 </div>
 
-                <div className="flex justify-center">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      // If user is anonymous, "Another Debate" means they likely used their 1 free prompt.
-                      // The requirement says: "when user clicks it, he will get a login or register button"
-                      if (!user) {
-                        toast({
-                          title: "Registration Required",
-                          description: "Please register to continue debating.",
-                        });
-                        setLocation("/auth");
-                        return;
-                      }
-
-                      // If using credits, we reload to ensure credit balance is updated from server
-                      // This satisfies "redirects to the credits" (or refreshes UI) ONLY when clicking this.
-                      if (usesCredits) {
-                        window.location.reload();
-                      } else {
-                        // If using external keys, just reset state without reload
-                        setDebateComplete(false);
-                        setMessages([]);
-                        setIsDebating(false);
-                      }
-                    }}
-                  >
-                    Start Another Debate
-                  </Button>
+                <div className="relative z-10 flex flex-col items-center text-center space-y-12">
+                  <div className="text-[10px] uppercase tracking-[0.5em] font-black opacity-40">Process Completed Successfully</div>
+                  <DownloadSection
+                    onDownloadJson={handleDownloadJson}
+                    onDownloadText={handleDownloadText}
+                  />
                 </div>
-              </motion.section>
-            )}
-          </div>
-        </main>
+              </div>
 
-        {/* Payment Modal */}
-        <PaymentModal open={showPaymentModal} onOpenChange={setShowPaymentModal} />
-      </div>
+              <div className="flex flex-col sm:flex-row justify-center gap-10">
+                <ListenUpButton messages={messages} />
+                <Button
+                  variant="outline"
+                  className="rounded-none h-20 px-16 border-2 border-foreground text-foreground hover:bg-foreground hover:text-background font-black uppercase text-base tracking-widest transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-[-8px] translate-y-[-8px] hover:translate-x-0 hover:translate-y-0"
+                  onClick={() => {
+                    if (!user) {
+                      toast({
+                        title: "Registration Required",
+                        description: "Please register to continue debating.",
+                      });
+                      setLocation("/auth");
+                      return;
+                    }
+                    if (usesCredits) {
+                      window.location.reload();
+                    } else {
+                      setDebateComplete(false);
+                      setMessages([]);
+                      setIsDebating(false);
+                    }
+                  }}
+                >
+                  New Instance —
+                </Button>
+              </div>
+            </motion.section>
+          )}
+        </div>
+      </main>
+
+      <Footer />
+
+      {/* Payment Modal */}
+      <PaymentModal open={showPaymentModal} onOpenChange={setShowPaymentModal} />
+
     </div>
   );
 }

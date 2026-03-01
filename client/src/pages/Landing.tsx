@@ -1,408 +1,202 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronDown } from "lucide-react";
-import { Link } from "wouter";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
+import { HeroScene } from "@/components/HeroScene";
 import { AgentVisual } from "@/components/AgentVisual";
 import { Footer } from "@/components/Footer";
-import MouseFollowerButton from "@/components/MouseFollowerButton";
-import { useRef } from "react";
-
-// ============================================
-// SCROLL DISTORTION TEXT COMPONENT
-// ============================================
-// This component creates the horizontal stretch effect when scrolling
-
-function ScrollDistortionText({
-  text,
-  className = "",
-  stretchFactor = 4,
-  blurAmount = 8,
-}: {
-  text: string;
-  className?: string;
-  stretchFactor?: number;
-  blurAmount?: number;
-}) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"],
-  });
-
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
-
-  const scaleX = useTransform(smoothProgress, [0, 1], [1, stretchFactor]);
-  const scaleY = useTransform(smoothProgress, [0, 1], [1, 0.9]);
-  const blurValue = useTransform(
-    smoothProgress,
-    [0, 0.5, 1],
-    [0, blurAmount, blurAmount * 0.6]
-  );
-
-  return (
-    <div ref={containerRef} className="relative">
-      <motion.div
-        className={`origin-center whitespace-nowrap will-change-transform ${className}`}
-        style={{
-          scaleX,
-          scaleY,
-          filter: useTransform(blurValue, (v) => `blur(${v}px)`),
-        }}
-      >
-        {text}
-      </motion.div>
-    </div>
-  );
-}
-
-// ============================================
-// MAIN LANDING PAGE
-// ============================================
+import DebateTopicInput from "@/components/DebateTopicInput";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { useLocation } from "wouter";
 
 export default function Landing() {
-  const scrollToNext = () => {
-    window.scrollBy({ top: window.innerHeight, behavior: "smooth" });
+  const [topic, setTopic] = useState("");
+  const [, setLocation] = useLocation();
+
+  const handleStartDebate = () => {
+    if (topic.trim()) {
+      setLocation(`/debate?topic=${encodeURIComponent(topic)}`);
+    } else {
+      setLocation("/debate");
+    }
   };
 
-  const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      {/* Section 1: Hero with 3F1 Scroll Distortion Effect */}
-      <section ref={heroRef} className="h-[100vh] relative overflow-hidden">
-        <motion.div
-          style={{ opacity }}
-          className="absolute inset-0 z-0"
-        >
-          <img
-            src="/hero-bg.png"
-            alt="Hero Background"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-background/30" />
-        </motion.div>
-        <div className="sticky top-0 h-screen flex items-center justify-center px-4">
-          <div className="max-w-5xl w-full z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center space-y-16"
-            >
-              <div className="space-y-8">
-                {/* 3F1 with scroll distortion effect */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                >
-                  <ScrollDistortionText
-                    text="3F1"
-                    className="text-9xl font-black font-logo tracking-tighter bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent"
-                    stretchFactor={5}
-                    blurAmount={10}
-                  />
-                </motion.div>
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground relative">
+      {/* Global Background Infrastructure */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
+        <div className="absolute top-1/4 left-10 text-[10px] font-black tracking-widest vertical-text select-none">3F1.PROTO // SECTOR_01</div>
+        <div className="absolute top-3/4 right-10 text-[10px] font-black tracking-widest vertical-text select-none">3F1.PROTO // SECTOR_02</div>
 
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  className="space-y-6"
-                >
-                  <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
-                    Three Faction Intelligence
-                  </h2>
-                  <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
-                    Watch three AI agents engage in structured debates on any
-                    topic
-                  </p>
-                </motion.div>
-              </div>
+        {/* Vertical lines that span full height */}
+        <div className="absolute inset-y-0 left-[10%] w-px bg-foreground" />
+        <div className="absolute inset-y-0 left-[90%] w-px bg-foreground" />
+        <div className="absolute inset-y-0 left-1/2 w-px bg-foreground" />
+      </div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-                className="flex flex-col sm:flex-row gap-6 justify-center items-center"
-              >
-                <Link href="/debate">
-                  <Button
-                    size="lg"
-                    className="gap-3 px-10 text-lg h-16 shadow-lg hover:shadow-xl transition-all"
-                    data-testid="button-start-debate"
-                  >
-                    Start a Debate
-                    <ArrowRight className="w-5 h-5" />
-                  </Button>
-                </Link>
-                <Button
-                  size="lg"
+      {/* SECTION 1: HERO */}
+      <div className="relative z-10">
+        <HeroScene />
+      </div>
+
+      {/* SECTION 2: THE DEMO (GENERATIVE UI IN ACTION) */}
+      <section className="relative py-40 px-6 border-b border-foreground/10 bg-background z-10 overflow-hidden">
+        {/* Background Coordinate Marker */}
+        <div className="absolute top-10 right-10 text-[9px] font-black tracking-[0.4em] opacity-10 select-none">
+          [COORD: 02:44:A]
+        </div>
+
+        <div className="max-w-7xl mx-auto space-y-24">
+          <div className="text-center space-y-6">
+            <div className="inline-flex items-center gap-3 px-4 py-1 border border-primary/20 text-[10px] uppercase font-black tracking-[0.3em] text-primary bg-primary/5 mb-4">
+              Module: Real-time // Interaction
+            </div>
+            <h2 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.85]">
+              Experience <br /><span className="text-stroke">Generative UI</span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed opacity-70">
+              Transform static responses into adaptive, high-performance interfaces. <br />
+              <span className="text-foreground">Pick a blueprint below to initialize.</span>
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto relative group">
+            <div className="absolute -inset-1 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none blur-xl" />
+            <div className="relative p-10 md:p-16 border-2 border-foreground bg-background shadow-[24px_24px_0px_0px_rgba(0,0,0,1)] dark:shadow-[24px_24px_0px_0px_rgba(255,255,255,1)] transition-all">
+              <div className="absolute top-0 left-0 w-12 h-12 border-l-4 border-t-4 border-primary opacity-20" />
+              <div className="absolute bottom-0 right-0 w-12 h-12 border-r-4 border-b-4 border-primary opacity-20" />
+
+              <DebateTopicInput
+                topic={topic}
+                onTopicChange={setTopic}
+                onStartDebate={handleStartDebate}
+                isDebating={false}
+                startButtonText="Initialize API —"
+              />
+            </div>
+
+            <div className="mt-12 flex flex-wrap justify-center gap-4">
+              {["Travel Hidden Gems", "Stocks to Watch", "Football Legends", "Global Street Food"].map((tag) => (
+                <Badge
+                  key={tag}
                   variant="outline"
-                  className="gap-3 px-10 text-lg h-16"
-                  onClick={scrollToNext}
+                  onClick={() => setTopic(tag)}
+                  className="rounded-none border-foreground/20 px-6 py-3 text-[10px] uppercase font-black tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer bg-background"
                 >
-                  Learn More
-                  <ChevronDown className="w-5 h-5" />
-                </Button>
-              </motion.div>
-            </motion.div>
+                  {tag} // 0X
+                </Badge>
+              ))}
+            </div>
           </div>
-
-          {/* Scroll indicator */}
-          <motion.button
-            onClick={scrollToNext}
-            className="absolute bottom-12 left-1/2 -translate-x-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <ChevronDown className="w-8 h-8" />
-          </motion.button>
         </div>
       </section>
 
-      {/* Section 2: How It Works (Split Screen) */}
-      <section className="min-h-screen flex items-center justify-center px-4 py-20 bg-card/10">
-        <div className="max-w-7xl w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Column: Content */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-              className="space-y-12"
-            >
-              <div className="space-y-6 text-center lg:text-left">
-                <h2 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
-                  How It Works
-                </h2>
-                <p className="text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 font-light">
-                  Three distinct AI personalities debate any topic through
-                  structured rounds, creating a dynamic 3D conversation.
-                </p>
-              </div>
+      {/* SECTION 3: HOW IT WORKS (SPLIT SCREEN) */}
+      <section className="relative py-48 px-6 border-b border-foreground/10 bg-foreground text-background z-10 overflow-hidden">
+        {/* Decorative Grid Lines */}
+        <div className="absolute inset-0 opacity-5 pointer-events-none">
+          <div className="absolute top-1/2 inset-x-0 h-px bg-background" />
+          <div className="absolute left-1/2 inset-y-0 w-px bg-background" />
+        </div>
 
-              <div className="space-y-6">
-                {[
-                  {
-                    number: "A",
-                    title: "The Analyst",
-                    color: "from-blue-500 to-cyan-500",
-                    description: "Breaks down topics logic and data.",
-                  },
-                  {
-                    number: "C",
-                    title: "The Critic",
-                    color: "from-purple-500 to-pink-500",
-                    description: "Challenges assumptions and finds flaws.",
-                  },
-                  {
-                    number: "S",
-                    title: "The Synthesizer",
-                    color: "from-orange-500 to-amber-500",
-                    description: "Unifies perspectives into solutions.",
-                  },
-                ].map((agent, index) => (
-                  <motion.div
-                    key={agent.title}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="flex items-center gap-6 p-4 rounded-xl border bg-card/40 hover:bg-card/60 transition-colors"
-                  >
-                    <span
-                      className={`text-4xl font-bold bg-gradient-to-r ${agent.color} bg-clip-text text-transparent w-16 text-center`}
-                    >
-                      {agent.number}
-                    </span>
-                    <div>
-                      <h3 className="text-xl font-semibold mb-1">
-                        {agent.title}
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 items-center relative z-10">
+          <div className="space-y-16">
+            <div className="space-y-8">
+              <div className="text-[10px] uppercase font-black tracking-[0.5em] text-primary">System Architecture</div>
+              <h2 className="text-7xl font-black tracking-tighter uppercase leading-[0.85]">
+                Neural <br /><span className="text-primary italic">Convergence</span>
+              </h2>
+              <p className="text-2xl text-background/60 font-medium max-w-lg leading-relaxed">
+                3F1 bridges the gap between raw LLM outputs and premium user experiences through a deterministic UI protocol.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {[
+                { label: "Analyst", desc: "Data extraction & logical structuring" },
+                { label: "Critic", desc: "Anomaly detection & cross-verification" },
+                { label: "Synthesizer", desc: "UI state generation & optimization" }
+              ].map((agent, i) => (
+                <div key={agent.label} className="group border border-background/10 p-8 flex items-center justify-between hover:border-primary/50 hover:bg-background/5 transition-all cursor-pointer">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-black text-primary opacity-50">UNIT_0{i + 1}</span>
+                      <h3 className="text-3xl font-black uppercase tracking-tighter group-hover:text-primary transition-colors">
+                        {agent.label}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {agent.description}
-                      </p>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+                    <p className="text-xs text-background/40 font-bold uppercase tracking-[0.2em]">
+                      {agent.desc}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 border border-background/10 flex items-center justify-center group-hover:border-primary/30 transition-colors">
+                    <div className="w-1.5 h-1.5 bg-background group-hover:bg-primary transition-colors" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-            {/* Right Column: Visual */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8 }}
-              className="relative flex justify-center lg:justify-end"
-            >
-              <div className="w-full max-w-2xl transform scale-90 lg:scale-100">
-                <AgentVisual />
-              </div>
-            </motion.div>
+          <div className="relative aspect-square flex items-center justify-center p-1 bg-background border border-background/10 shadow-[40px_40px_0px_-10px_rgba(255,102,0,0.1)] transition-transform hover:scale-[1.02] duration-500">
+            <div className="w-full h-full grayscale hover:grayscale-0 transition-all duration-700 p-8 flex items-center justify-center border border-foreground/5">
+              <AgentVisual />
+            </div>
+            {/* Coordinate markers in card corners */}
+            <span className="absolute top-4 left-4 text-[8px] font-black font-mono opacity-20">X: 104.2 / Y: 88.1</span>
+            <span className="absolute bottom-4 right-4 text-[8px] font-black font-mono opacity-20">SEQ: 009827-X</span>
           </div>
         </div>
       </section>
 
-      {/* Section 3: About the Project */}
-      <section className="min-h-screen flex items-center justify-center px-4 py-20">
-        <div className="max-w-4xl w-full">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="space-y-20"
-          >
-            <div className="text-center space-y-6">
-              <h2 className="text-6xl md:text-7xl font-bold text-foreground tracking-tight">
-                About the Project
-              </h2>
-              <p className="text-2xl text-muted-foreground font-light">
-                A new way to explore ideas through AI collaboration
-              </p>
-            </div>
+      {/* SECTION 4: BENTO FEATURES (BUILT FOR DEVELOPERS) */}
+      <section className="relative py-48 px-6 bg-background z-10 overflow-hidden">
+        {/* Structural Line */}
+        <div className="absolute top-0 left-[10%] bottom-0 w-px bg-foreground opacity-[0.03]" />
 
-            <div className="space-y-10">
-              <div className="p-12 rounded-2xl border bg-card space-y-8">
-                <p className="text-xl text-foreground leading-relaxed font-light">
-                  3F1 (Three Faction Intelligence) is an experimental platform
-                  that brings together three AI agents with distinct
-                  personalities to debate any topic you choose. Each agent
-                  brings a unique perspective, creating a rich,
-                  multi-dimensional exploration of ideas.
-                </p>
-                <p className="text-xl text-foreground leading-relaxed font-light">
-                  Through 5 structured rounds, watch as the Analyst breaks down
-                  complex topics, the Critic challenges assumptions, and the
-                  Synthesizer weaves insights together into actionable
-                  conclusions.
-                </p>
-              </div>
+        <div className="max-w-7xl mx-auto space-y-32">
+          <div className="text-center space-y-6">
+            <div className="text-[10px] uppercase font-black tracking-[0.5em] opacity-40 mb-4">Functional Specifications</div>
+            <h2 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-none">
+              Dev <span className="text-stroke">Protocol</span>
+            </h2>
+            <p className="text-xl text-muted-foreground uppercase tracking-widest font-black max-w-2xl mx-auto opacity-50">
+              Low-latency components for high-stakes implementations.
+            </p>
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[
-                  {
-                    title: "Multi-Provider",
-                    description: "OpenAI, Gemini, Perplexity, or custom APIs",
-                  },
-                  {
-                    title: "5 Rounds",
-                    description: "Structured debate format per agent",
-                  },
-                  {
-                    title: "Export Ready",
-                    description: "Download transcripts in JSON or text",
-                  },
-                ].map((feature, index) => (
-                  <motion.div
-                    key={feature.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    className="p-8 rounded-xl border bg-card/50 space-y-3 text-center"
-                  >
-                    <h4 className="text-xl font-semibold">{feature.title}</h4>
-                    <p className="text-base text-muted-foreground font-light">
-                      {feature.description}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 bg-foreground/5 p-1 border border-foreground/10">
+            {[
+              { title: "Universal AI Stack", desc: "OpenAI-compatible endpoints optimized for rapid interface layering." },
+              { title: "Dynamic Scaling", desc: "Native responsiveness with zero layout shift during real-time generation." },
+              { title: "Tool Convergence", desc: "Direct integration for file-handling, code execution, and data visualization." },
+              { title: "Component Foundry", desc: "Native React support with hot-swappable design tokens and modules." },
+              { title: "Unified Workflows", desc: "Integrated state management for complex multi-turn AI interactions." },
+              { title: "Core Resilience", desc: "Industrial-grade stability with built-in streaming fault tolerance." }
+            ].map((feature, i) => (
+              <Card key={feature.title} className="rounded-none border-none p-12 space-y-10 hover:bg-foreground hover:text-background transition-all group relative overflow-hidden bg-background">
+                {/* ID Marker */}
+                <div className="absolute top-6 right-6 text-[9px] font-black opacity-10 group-hover:text-primary group-hover:opacity-100 transition-all">
+                  DEV-ID: 0{i + 1}
+                </div>
+
+                <div className="w-10 h-10 border border-foreground/10 group-hover:border-background/20 flex items-center justify-center transition-colors">
+                  <div className="w-2 h-2 bg-primary group-hover:scale-150 transition-transform" />
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-2xl font-black uppercase tracking-tighter leading-tight">{feature.title}</h4>
+                  <p className="text-xs uppercase font-bold tracking-[0.1em] opacity-50 group-hover:opacity-80 leading-relaxed">{feature.desc}</p>
+                </div>
+
+                <div className="pt-8 border-t border-foreground/[0.05] group-hover:border-background/10 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[8px] font-black tracking-widest">ENABLED</span>
+                  <div className="w-12 h-px bg-primary" />
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Section 4: Team */}
-      <section className="py-32 px-4">
-        <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="text-center space-y-12"
-          >
-            <div className="space-y-6">
-              <h2 className="text-6xl md:text-7xl font-bold text-foreground tracking-tight">
-                Meet the Team
-              </h2>
-              <p className="text-2xl text-muted-foreground font-light">
-                Built with passion and curiosity
-              </p>
-            </div>
-
-            <div className="p-10 rounded-2xl border bg-card space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-4xl font-bold bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                  Alpha.kore
-                </h3>
-                <p className="text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto">
-                  A passionate group of developers exploring the intersection of AI and
-                  collaborative intelligence. 3F1 is an experiment in creating
-                  meaningful AI interactions that go beyond simple
-                  question-and-answer.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Section 5: Contact */}
-      <section className="py-32 px-4">
-        <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="text-center space-y-12"
-          >
-            <div className="space-y-6">
-              <h2 className="text-6xl md:text-7xl font-bold text-foreground tracking-tight">
-                Get in Touch
-              </h2>
-              <p className="text-2xl text-muted-foreground font-light">
-                Questions, feedback, or just want to chat?
-              </p>
-            </div>
-
-            <div className="p-10 rounded-2xl border bg-card space-y-8">
-              <p className="text-xl text-muted-foreground font-light">
-                Have ideas for improvements? Found a bug? Or just want to share
-                your experience? I'd love to hear from you.
-              </p>
-
-              <a href="mailto:alpha.kore25@gmail.com" className="inline-block">
-                <Button
-                  size="lg"
-                  className="gap-3 px-10 text-xl h-16 shadow-lg hover:shadow-xl transition-all"
-                >
-                  alpha.kore25@gmail.com
-                </Button>
-              </a>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <MouseFollowerButton />
-      {/* Footer */}
       <Footer />
     </div>
   );

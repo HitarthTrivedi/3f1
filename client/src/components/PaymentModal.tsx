@@ -131,77 +131,108 @@ export default function PaymentModal({ open, onOpenChange }: PaymentModalProps) 
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                    <DialogTitle>Purchase Debate Credits</DialogTitle>
-                    <DialogDescription>
-                        Choose a credit package to continue debating. Each debate costs 10 credits.
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="w-[95vw] sm:max-w-[700px] max-h-[90vh] rounded-none border-2 border-foreground bg-background p-0 overflow-y-auto shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] sm:shadow-[24px_24px_0px_0px_rgba(0,0,0,1)] dark:sm:shadow-[24px_24px_0px_0px_rgba(255,255,255,1)]">
+                <div className="absolute top-0 left-0 w-full h-1 bg-primary z-50" />
 
-                <div className="space-y-4 py-4">
-                    {user && (
-                        <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
-                            <div>
-                                <p className="text-sm font-medium text-orange-900">Current Balance</p>
-                                <p className="text-2xl font-bold text-orange-600">{user.credits} credits</p>
+                <div className="p-6 sm:p-10 space-y-8 sm:space-y-10">
+                    <DialogHeader className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 border border-foreground flex items-center justify-center">
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary animate-pulse" />
                             </div>
-                            {user.freePrompts > 0 && (
-                                <div className="text-right">
-                                    <p className="text-sm font-medium text-orange-900">Free Prompts</p>
-                                    <p className="text-xl font-bold text-orange-600">{user.freePrompts}</p>
-                                </div>
-                            )}
+                            <span className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.3em] sm:tracking-[0.5em] opacity-40">Module: Payment // Gateway</span>
                         </div>
-                    )}
+                        <DialogTitle className="text-2xl sm:text-4xl font-black uppercase tracking-tighter">Purchase <span className="text-primary italic">Credits</span></DialogTitle>
+                        <DialogDescription className="text-[10px] sm:text-sm uppercase font-bold tracking-widest opacity-60">
+                            Select a neural processing package to continue debate operations.
+                        </DialogDescription>
+                    </DialogHeader>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        {creditPackages.map((pkg) => (
-                            <Card
-                                key={pkg.amount}
-                                className={`cursor-pointer transition-all hover:shadow-md ${pkg.popular ? "border-orange-500 border-2" : ""
-                                    } ${selectedPackage === pkg && isProcessing ? "opacity-50" : ""}`}
-                                onClick={() => !isProcessing && handlePurchase(pkg)}
-                            >
-                                {pkg.popular && (
-                                    <div className="bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-t-lg text-center flex items-center justify-center gap-1">
-                                        <Sparkles className="h-3 w-3" />
-                                        Most Popular
+                    <div className="space-y-8 sm:space-y-10">
+                        {user && (
+                            <div className="p-6 sm:p-8 border-2 border-primary/20 bg-primary/5 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-2 sm:p-4 text-[6px] sm:text-[8px] font-black opacity-10 tracking-widest">USER_WALLET // SYNCED</div>
+                                <div className="flex flex-col sm:flex-row items-center justify-between relative z-10 gap-4">
+                                    <div className="space-y-1 text-center sm:text-left">
+                                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] opacity-50">Current Balance</p>
+                                        <p className="text-3xl sm:text-4xl font-black tracking-tighter">{user.credits} <span className="text-[10px] uppercase opacity-40 ml-1">Credits</span></p>
                                     </div>
-                                )}
-                                <CardHeader className={pkg.popular ? "pt-3" : ""}>
-                                    <CardTitle className="text-xl">₹{pkg.amount}</CardTitle>
-                                    <CardDescription>{pkg.credits} credits</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Button
-                                        className="w-full"
-                                        disabled={isProcessing}
-                                        variant={pkg.popular ? "default" : "outline"}
-                                    >
-                                        {selectedPackage === pkg && isProcessing ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <CreditCard className="mr-2 h-4 w-4" />
-                                                Purchase
-                                            </>
-                                        )}
-                                    </Button>
-                                    <p className="text-xs text-center text-muted-foreground mt-2">
-                                        ~{Math.floor(pkg.credits / 10)} debates
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
+                                    <div className="hidden sm:block h-12 w-px bg-primary/20 mx-8" />
+                                    <div className="sm:hidden w-full h-px bg-primary/20" />
+                                    <div className="space-y-1 text-center sm:text-right">
+                                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] opacity-50">Free Prompts</p>
+                                        <p className="text-2xl sm:text-3xl font-black tracking-tighter text-primary">{user.freePrompts}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
-                    <div className="text-center text-sm text-muted-foreground">
-                        <p>Secure payment powered by Razorpay</p>
-                        <p className="mt-1">₹10 = 50 credits (5 debates)</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pb-4">
+                            {creditPackages.map((pkg, i) => (
+                                <Card
+                                    key={pkg.amount}
+                                    className={`rounded-none border-2 border-foreground relative transition-all group cursor-pointer ${pkg.popular
+                                        ? "shadow-[8px_8px_0px_0px_rgba(255,102,0,1)] sm:shadow-[12px_12px_0px_0px_rgba(255,102,0,1)] -translate-x-1 -translate-y-1"
+                                        : "shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+                                        } ${selectedPackage === pkg && isProcessing ? "opacity-50" : ""}`}
+                                    onClick={() => !isProcessing && handlePurchase(pkg)}
+                                >
+                                    <div className="absolute -top-3 left-4 px-2 bg-background border border-foreground text-[8px] font-black tracking-[0.2em] z-10 uppercase">
+                                        PKG_ID: 0{i + 1}
+                                    </div>
+
+                                    {pkg.popular && (
+                                        <div className="bg-primary text-primary-foreground text-[8px] font-black tracking-[0.3em] px-3 py-1.5 uppercase text-center flex items-center justify-center gap-2 border-b-2 border-foreground">
+                                            <Sparkles className="h-3 w-3" />
+                                            Most Popular Choice
+                                        </div>
+                                    )}
+
+                                    <CardHeader className="p-6 sm:p-8 pb-3 sm:pb-4">
+                                        <div className="flex justify-between items-end">
+                                            <CardTitle className="text-2xl sm:text-3xl font-black tracking-tighter">₹{pkg.amount}</CardTitle>
+                                            <div className="text-[10px] font-black opacity-30">INR</div>
+                                        </div>
+                                        <CardDescription className="text-base sm:text-lg font-black uppercase tracking-tighter text-foreground">{pkg.credits} Credits</CardDescription>
+                                    </CardHeader>
+
+                                    <CardContent className="p-6 sm:p-8 pt-0 space-y-4 sm:space-y-6">
+                                        <Button
+                                            className={`w-full h-12 sm:h-14 rounded-none font-black uppercase tracking-widest text-[10px] sm:text-xs border-2 ${pkg.popular
+                                                ? "bg-primary text-primary-foreground border-foreground hover:bg-foreground hover:text-background"
+                                                : "bg-background text-foreground border-foreground hover:bg-foreground hover:text-background"
+                                                }`}
+                                            disabled={isProcessing}
+                                        >
+                                            {selectedPackage === pkg && isProcessing ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Verifying...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CreditCard className="mr-2 h-4 w-4" />
+                                                    Initialize Payment
+                                                </>
+                                            )}
+                                        </Button>
+                                        <div className="flex items-center justify-between text-[6px] sm:text-[8px] font-black tracking-widest opacity-30 uppercase border-t border-foreground/5 pt-3 sm:pt-4">
+                                            <span>Est. Debates: ~{Math.floor(pkg.credits / 10)}</span>
+                                            <span>B0-V2</span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+
+                        <div className="flex flex-col items-center gap-2 pt-6 border-t border-foreground/5 text-center">
+                            <div className="flex items-center gap-3">
+                                <div className="h-px w-6 sm:w-8 bg-foreground/10" />
+                                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] opacity-30 italic-primary">Secure Transaction Flow</span>
+                                <div className="h-px w-6 sm:w-8 bg-foreground/10" />
+                            </div>
+                            <p className="text-[7px] sm:text-[9px] uppercase font-bold tracking-widest opacity-40">Powered by Razorpay Node Interface // ₹10 = 50 Units (Standard)</p>
+                        </div>
                     </div>
                 </div>
             </DialogContent>

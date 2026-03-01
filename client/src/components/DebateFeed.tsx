@@ -19,9 +19,8 @@ export default function DebateFeed({ messages, totalRounds }: DebateFeedProps) {
   }
 
   return (
-    <div className="space-y-6" data-testid="container-debate-feed">
-      <h2 className="text-3xl font-bold mb-8">Live Debate</h2>
-      <div className="space-y-6">
+    <div className="space-y-12" data-testid="container-debate-feed">
+      <div className="space-y-12">
         {messages.map((msg, index) => (
           <DebateMessage
             key={msg.id}
