@@ -62,7 +62,7 @@ export default function Home() {
     }
 
     const getModel = (agent: AgentConfig) => {
-      if (agent.provider === "builtin") return "gemini-2.0-flash";
+      if (agent.provider === "builtin") return "gemini-2.5-flash";
       if (agent.provider === "huggingface") return "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai";
       return agent.model;
     };
