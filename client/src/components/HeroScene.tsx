@@ -22,15 +22,15 @@ export const HeroScene = () => {
                     className="space-y-6"
                 >
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-none border border-primary text-[10px] uppercase tracking-[0.2em] text-primary font-bold">
-                        Introducing Generative UI
+                        Introducing 3F1.OS debate
                     </div>
 
-                    <h1 className="text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-foreground">
-                        Make AI apps respond with <span className="text-primary italic">Charts</span>
+                    <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-foreground">
+                        3<span className="text-primary italic">F1</span>
                     </h1>
 
-                    <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-                        3F1 is an API middleware that augments LLMs to respond with interactive UI in realtime instead of text.
+                    <p className="text-lg md:text-2xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+                        3F1 leverages a three-agent dialectic protocol to distill complex topics into objective, structured synthesis.
                     </p>
                 </motion.div>
 
@@ -43,9 +43,9 @@ export const HeroScene = () => {
                     <Link href="/debate">
                         <Button
                             size="lg"
-                            className="h-16 px-10 rounded-none bg-foreground text-background hover:bg-primary transition-colors text-lg font-bold group"
+                            className="h-14 px-6 md:h-16 md:px-10 rounded-none bg-foreground text-background hover:bg-primary transition-colors text-base md:text-lg font-bold group"
                         >
-                            Start Debate
+                            Trigger debate
                             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     </Link>
@@ -55,7 +55,7 @@ export const HeroScene = () => {
                             variant="outline"
                             size="lg"
                             onClick={() => signOut()}
-                            className="h-16 px-10 rounded-none border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors text-lg font-bold group"
+                            className="h-14 px-6 md:h-16 md:px-10 rounded-none border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors text-base md:text-lg font-bold group"
                         >
                             Logout —
                             <LogOut className="ml-2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -66,7 +66,7 @@ export const HeroScene = () => {
                                 variant="outline"
                                 size="lg"
                                 disabled={authLoading}
-                                className="h-16 px-10 rounded-none border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors text-lg font-bold group min-w-[160px]"
+                                className="h-14 px-6 md:h-16 md:px-10 rounded-none border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors text-base md:text-lg font-bold group min-w-[160px]"
                             >
                                 {authLoading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />

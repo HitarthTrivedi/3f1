@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AgentConfig {
   provider: string;
@@ -49,20 +50,21 @@ export default function Home() {
   });
 
   const agents = [agent1, agent2, agent3];
-  const usesCredits = agents.some(a => a.provider === "builtin" || a.provider === "huggingface");
+  const usesCredits = agents.some(a => a.provider === "builtin" || a.provider === "builtin_grok" || a.provider === "huggingface");
 
   const handleStartDebate = async () => {
     if (!agent1.provider || !agent2.provider || !agent3.provider) {
       toast({
         title: "Configuration incomplete",
-        description: "Please configure all three agents before starting the debate.",
+        description: "Please configure all three factions before starting the dialectic.",
         variant: "destructive",
       });
       return;
     }
 
     const getModel = (agent: AgentConfig) => {
-      if (agent.provider === "builtin") return "gemini-2.5-flash";
+      if (agent.provider === "builtin") return "gemini-2.0-flash";
+      if (agent.provider === "builtin_grok") return "grok-4-latest";
       if (agent.provider === "huggingface") return "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai";
       return agent.model;
     };
@@ -74,21 +76,17 @@ export default function Home() {
     if (!model1 || !model2 || !model3) {
       toast({
         title: "Model selection required",
-        description: "Please specify a model for each agent.",
+        description: "Please specify a model for each faction.",
         variant: "destructive",
       });
       return;
     }
 
-    // --- Refined Subscription Flow: Built-in vs BYOK ---
-    const agents = [agent1, agent2, agent3];
-    const usesCredits = agents.some(a => a.provider === "builtin" || a.provider === "huggingface");
-
     // Check keys for non-builtin agents
-    if (agents.some(a => a.provider !== "builtin" && a.provider !== "huggingface" && !a.apiKey)) {
+    if (agents.some(a => a.provider !== "builtin" && a.provider !== "builtin_grok" && a.provider !== "huggingface" && !a.apiKey)) {
       toast({
         title: "API keys required",
-        description: "Please provide API keys for external providers, or use Built-in AI.",
+        description: "Please provide API keys for external providers, or use Built-in Factions.",
         variant: "destructive",
       });
       return;
@@ -97,39 +95,28 @@ export default function Home() {
     // Check Credit Requirements ONLY if using Built-in
     if (usesCredits) {
       if (user) {
-        // Logged In: Check Credits
         const cost = 10;
         const free = user.freePrompts > 0;
-
         if (!free && user.credits < cost) {
           toast({
             title: "Insufficient Credits",
-            description: "You need 10 credits to use Built-in AI. Please buy more or use your own keys.",
+            description: "You need 10 credits to use Built-in Factions. Please buy more or use your own keys.",
             variant: "destructive"
           });
           return;
         }
-      } else {
-        // Anonymous: Server tracks usage. 
-        // We let it proceed. If session limit reached, server returns 401.
       }
     }
 
     setIsDebating(true);
     setDebateComplete(false);
     setMessages([]);
-
     const agentColorMap = ["blue", "green", "orange"] as const;
 
     try {
-      // Get Firebase token if user is logged in
       const token = await getIdToken();
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
 
       const response = await fetch("/api/debate/start", {
         method: "POST",
@@ -137,24 +124,9 @@ export default function Home() {
         body: JSON.stringify({
           topic,
           agents: [
-            {
-              name: "Agent 1",
-              provider: agent1.provider,
-              model: model1,
-              apiKey: agent1.apiKey,
-            },
-            {
-              name: "Agent 2",
-              provider: agent2.provider,
-              model: model2,
-              apiKey: agent2.apiKey,
-            },
-            {
-              name: "Agent 3",
-              provider: agent3.provider,
-              model: model3,
-              apiKey: agent3.apiKey,
-            },
+            { name: "Agent 1", provider: agent1.provider, model: model1, apiKey: agent1.apiKey },
+            { name: "Agent 2", provider: agent2.provider, model: model2, apiKey: agent2.apiKey },
+            { name: "Agent 3", provider: agent3.provider, model: model3, apiKey: agent3.apiKey },
           ],
         }),
       });
@@ -179,34 +151,25 @@ export default function Home() {
           setIsDebating(false);
           return;
         }
-
         throw new Error(errMsg);
       }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error("No response stream available");
-      }
+      if (!reader) throw new Error("No response stream available");
 
       let buffer = "";
-
       while (true) {
         const { done, value } = await reader.read();
-
         if (done) break;
-
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
-
         buffer = lines.pop() || "";
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
             try {
               const data = JSON.parse(line.slice(6));
-
               if (data.type === "complete") {
                 setIsDebating(false);
                 setDebateComplete(true);
@@ -214,9 +177,6 @@ export default function Home() {
                   title: "Debate Complete",
                   description: "All rounds have finished. You can now download the transcript.",
                 });
-                // Refresh to show updated credits
-                // if (user) setTimeout(() => window.location.reload(), 1500);
-
               } else if (data.type === "error") {
                 throw new Error(data.error);
               } else {
@@ -275,7 +235,7 @@ export default function Home() {
 
     toast({
       title: "Download started",
-      description: "Your debate transcript is being downloaded as JSON.",
+      description: "Your dialectic synthesis is being downloaded as JSON.",
     });
   };
 
@@ -328,56 +288,57 @@ export default function Home() {
       <div className="fixed inset-y-0 right-1/4 w-px bg-border/20 pointer-events-none hidden lg:block z-0" />
 
       <header className="border-b border-foreground/10 bg-background sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 flex flex-wrap items-center justify-between gap-y-4">
+          <div className="flex items-center gap-3 md:gap-6">
             <Link href="/">
-              <Button variant="outline" size="icon" className="rounded-none border-foreground/20 hover:border-foreground transition-all group" data-testid="button-back">
-                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              <Button variant="outline" size="icon" className="w-9 h-9 md:w-10 md:h-10 rounded-none border-foreground/20 hover:border-foreground transition-all group" data-testid="button-back">
+                <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
               </Button>
             </Link>
             <div className="relative">
-              <h1 className="text-3xl font-black tracking-tighter uppercase leading-none" data-testid="text-logo">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none" data-testid="text-logo">
                 3F1 <span className="text-primary italic">—</span>
               </h1>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Configure & Debate</p>
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <div className="hidden xs:flex items-center gap-2 mt-1">
+                <p className="text-[8px] md:text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Deploy & Synthesize</p>
+                <span className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-primary animate-pulse" />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4 ml-auto sm:ml-0">
             <div className="hidden xl:flex flex-col items-end mr-8 border-r border-foreground/10 pr-8">
               <span className="text-[8px] uppercase font-black tracking-[0.3em] opacity-30">Security Terminal</span>
               <span className="text-[10px] uppercase font-black tracking-widest text-primary">Secure // Protocol 3F1.X</span>
             </div>
 
+            <ThemeToggle />
+
             {isLoading ? (
-              <div className="flex items-center gap-4 px-8 py-2 border border-foreground/10 bg-foreground/5 h-12">
-                <Loader2 className="w-4 h-4 animate-spin opacity-40" />
-                <span className="text-[10px] uppercase font-black tracking-[0.4em] opacity-30">Syncing Identity...</span>
+              <div className="flex items-center gap-4 px-4 md:px-8 py-2 border border-foreground/10 bg-foreground/5 h-10 md:h-12">
+                <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin opacity-40" />
+                <span className="text-[8px] md:text-[10px] uppercase font-black tracking-[0.4em] opacity-30">Sync...</span>
               </div>
             ) : user ? (
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3 md:gap-6">
                 <div className="text-right hidden sm:block">
-                  <div className="text-[10px] uppercase tracking-widest font-black opacity-40">Wallet Info</div>
-                  <div className="text-sm font-bold">Credits: {user.credits}</div>
-                  <div className="text-[10px] text-primary uppercase font-bold">Free: {user.freePrompts}</div>
+                  <div className="text-[8px] md:text-[10px] uppercase tracking-widest font-black opacity-40">Wallet Info</div>
+                  <div className="text-xs md:text-sm font-bold">Credits: {user.credits}</div>
                 </div>
                 <Button
                   size="sm"
-                  className="rounded-none bg-foreground text-background hover:bg-primary transition-colors font-bold uppercase text-[10px] tracking-widest h-10 px-6 shadow-[4px_4px_0px_0px_rgba(255,102,0,0.5)]"
+                  className="rounded-none bg-foreground text-background hover:bg-primary transition-colors font-bold uppercase text-[8px] md:text-[10px] tracking-widest h-9 md:h-10 px-4 md:px-6 shadow-[4px_4px_0px_0px_rgba(255,102,0,0.5)]"
                   onClick={() => setShowPaymentModal(true)}
                 >
-                  <CreditCard className="h-4 w-4 mr-2" />
+                  <CreditCard className="h-3 w-3 md:h-4 md:w-4 mr-1.5 md:mr-2" />
                   Buy Credits
                 </Button>
-                <Button variant="ghost" className="rounded-none uppercase text-[10px] font-bold tracking-[0.2em] hover:text-primary transition-colors" onClick={signOut}>Logout</Button>
+                <Button variant="ghost" className="hidden xs:block rounded-none uppercase text-[8px] md:text-[10px] font-bold tracking-[0.2em] hover:text-primary transition-colors" onClick={signOut}>Logout</Button>
               </div>
             ) : (
               <Link href="/auth">
-                <Button className="rounded-none bg-foreground text-background hover:bg-primary transition-colors font-bold uppercase text-xs tracking-widest h-12 px-8 shadow-[8px_8px_0px_0px_rgba(255,102,0,0.3)]">
-                  Login / Register —
+                <Button className="rounded-none bg-foreground text-background hover:bg-primary transition-colors font-bold uppercase text-[10px] md:text-xs tracking-widest h-10 md:h-12 px-6 md:px-8 shadow-[4px_4px_0px_0px_rgba(255,102,0,0.3)] md:shadow-[8px_8px_0px_0px_rgba(255,102,0,0.3)]">
+                  Login —
                 </Button>
               </Link>
             )}
@@ -385,8 +346,8 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-24">
-        <div className="space-y-40">
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-24">
+        <div className="space-y-20 md:space-y-40">
           {/* SECTION 1: CONFIGURATION */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
@@ -402,8 +363,8 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.4em]">
                 Step <span className="italic">01</span> <span className="w-12 h-px bg-primary" />
               </div>
-              <h2 className="text-7xl font-black tracking-tighter uppercase leading-[0.9]">
-                Configure <br /><span className="text-stroke">Your Agents</span>
+              <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase leading-[0.9]">
+                Configure <br /><span className="text-stroke">Your Factions</span>
               </h2>
             </div>
 
@@ -414,7 +375,7 @@ export default function Home() {
                 provider={agent1.provider}
                 model={agent1.model}
                 apiKey={agent1.apiKey}
-                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.5-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent1.model })}
+                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "builtin_grok" ? "grok-4-latest" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent1.model })}
                 onModelChange={(val) => setAgent1({ ...agent1, model: val })}
                 onApiKeyChange={(val) => setAgent1({ ...agent1, apiKey: val })}
               />
@@ -424,7 +385,7 @@ export default function Home() {
                 provider={agent2.provider}
                 model={agent2.model}
                 apiKey={agent2.apiKey}
-                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.5-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent2.model })}
+                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "builtin_grok" ? "grok-4-latest" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent2.model })}
                 onModelChange={(val) => setAgent2({ ...agent2, model: val })}
                 onApiKeyChange={(val) => setAgent2({ ...agent2, apiKey: val })}
               />
@@ -434,7 +395,7 @@ export default function Home() {
                 provider={agent3.provider}
                 model={agent3.model}
                 apiKey={agent3.apiKey}
-                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.5-flash" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent3.model })}
+                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemini-2.0-flash" : val === "builtin_grok" ? "grok-4-latest" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent3.model })}
                 onModelChange={(val) => setAgent3({ ...agent3, model: val })}
                 onApiKeyChange={(val) => setAgent3({ ...agent3, apiKey: val })}
               />
@@ -458,9 +419,10 @@ export default function Home() {
               <div className="h-px flex-1 bg-foreground/10" />
             </div>
 
-            <div className="p-10 md:p-16 border-2 border-foreground bg-background shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] dark:shadow-[20px_20px_0px_0px_rgba(255,255,255,1)] relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-primary opacity-20" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-primary opacity-20" />
+            <div className="p-8 md:p-16 border-2 border-foreground bg-background shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:shadow-[12px_12px_0px_0px_rgba(255,102,0,0.2)] md:shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] md:dark:shadow-[20px_20px_0px_0px_rgba(255,102,0,0.2)] relative overflow-hidden group">
+              <div className="absolute inset-0 pointer-events-none opacity-[0.02] dark:opacity-[0.05] bg-[linear-gradient(rgba(255,102,0,0.1)_1px,transparent_1px)] bg-[size:100%_4px]" />
+              <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-primary opacity-30 dark:opacity-40" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-primary opacity-30 dark:opacity-40" />
 
               <DebateTopicInput
                 topic={topic}
@@ -469,12 +431,12 @@ export default function Home() {
                 isDebating={isDebating}
                 startButtonText={
                   !usesCredits
-                    ? "Initialize Debate —"
+                    ? "Initialize Dialectic —"
                     : !user
-                      ? "Initialize Debate (1 Free) —"
+                      ? "Initialize Dialectic (1 Free) —"
                       : user.freePrompts > 0
-                        ? `Initialize Debate (${user.freePrompts} Free) —`
-                        : "Initialize Debate (10 Credits) —"
+                        ? `Initialize Dialectic (${user.freePrompts} Free) —`
+                        : "Initialize Dialectic (10 Credits) —"
                 }
                 isStartDisabled={
                   !!(usesCredits && user && user.freePrompts <= 0 && user.credits < 10)
@@ -497,8 +459,8 @@ export default function Home() {
                   <Badge variant="outline" className="rounded-none border-primary text-primary px-6 py-2 uppercase text-[10px] tracking-[0.5em] font-black bg-primary/5">Stream Active</Badge>
                   <div className="h-px flex-1 bg-primary/20" />
                 </div>
-                <h2 className="text-5xl font-black uppercase tracking-tighter leading-tight">
-                  Intelligence <br /><span className="italic">Verification Feed</span>
+                <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-tight">
+                  Intelligence <br /><span className="italic">Synthesis Feed</span>
                 </h2>
               </div>
               <div className="p-1 bg-foreground/5 border border-foreground/10">
@@ -538,7 +500,7 @@ export default function Home() {
                     if (!user) {
                       toast({
                         title: "Registration Required",
-                        description: "Please register to continue debating.",
+                        description: "Please register to continue synthesising.",
                       });
                       setLocation("/auth");
                       return;

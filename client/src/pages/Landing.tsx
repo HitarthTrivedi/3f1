@@ -3,10 +3,13 @@ import { HeroScene } from "@/components/HeroScene";
 import { AgentVisual } from "@/components/AgentVisual";
 import { Footer } from "@/components/Footer";
 import DebateTopicInput from "@/components/DebateTopicInput";
+import { TechCarousel } from "@/components/TechCarousel";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useLocation } from "wouter";
+
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Landing() {
   const [topic, setTopic] = useState("");
@@ -22,6 +25,16 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground relative">
+      {/* Navigation / Top Bar */}
+      <div className="fixed top-0 left-0 right-0 z-[100] p-6 flex justify-between items-start pointer-events-none">
+        <div className="pointer-events-auto">
+          <div className="text-xl font-black font-logo tracking-tight">3F1</div>
+        </div>
+        <div className="pointer-events-auto">
+          <ThemeToggle />
+        </div>
+      </div>
+
       {/* Global Background Infrastructure */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
         <div className="absolute top-1/4 left-10 text-[10px] font-black tracking-widest vertical-text select-none">3F1.PROTO // SECTOR_01</div>
@@ -39,48 +52,54 @@ export default function Landing() {
       </div>
 
       {/* SECTION 2: THE DEMO (GENERATIVE UI IN ACTION) */}
-      <section className="relative py-40 px-6 border-b border-foreground/10 bg-background z-10 overflow-hidden">
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="relative py-24 md:py-40 px-6 border-b border-foreground/10 bg-background z-10 overflow-hidden"
+      >
         {/* Background Coordinate Marker */}
         <div className="absolute top-10 right-10 text-[9px] font-black tracking-[0.4em] opacity-10 select-none">
           [COORD: 02:44:A]
         </div>
 
-        <div className="max-w-7xl mx-auto space-y-24">
+        <div className="max-w-7xl mx-auto space-y-16 md:space-y-24">
           <div className="text-center space-y-6">
             <div className="inline-flex items-center gap-3 px-4 py-1 border border-primary/20 text-[10px] uppercase font-black tracking-[0.3em] text-primary bg-primary/5 mb-4">
               Module: Real-time // Interaction
             </div>
-            <h2 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.85]">
-              Experience <br /><span className="text-stroke">Generative UI</span>
+            <h2 className="text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter uppercase leading-[0.85] break-words">
+              Triadic <br /><span className="text-primary italic">Dialectic</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed opacity-70">
-              Transform static responses into adaptive, high-performance interfaces. <br />
-              <span className="text-foreground">Pick a blueprint below to initialize.</span>
+              Engage high-performance agentic reasoning through structured conflict and synthesis. <br />
+              <span className="text-foreground">Initialize the 3F1 protocol below.</span>
             </p>
           </div>
 
           <div className="max-w-3xl mx-auto relative group">
             <div className="absolute -inset-1 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none blur-xl" />
-            <div className="relative p-10 md:p-16 border-2 border-foreground bg-background shadow-[24px_24px_0px_0px_rgba(0,0,0,1)] dark:shadow-[24px_24px_0px_0px_rgba(255,255,255,1)] transition-all">
-              <div className="absolute top-0 left-0 w-12 h-12 border-l-4 border-t-4 border-primary opacity-20" />
-              <div className="absolute bottom-0 right-0 w-12 h-12 border-r-4 border-b-4 border-primary opacity-20" />
+            <div className="relative p-6 md:p-10 lg:p-16 border-2 border-foreground bg-background shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:shadow-[12px_12px_0px_0px_rgba(255,255,255,1)] md:shadow-[24px_24px_0px_0px_rgba(0,0,0,1)] md:dark:shadow-[24px_24px_0px_0px_rgba(255,255,255,1)] transition-all mx-2 md:mx-0">
+              <div className="absolute top-0 left-0 w-8 h-8 md:w-12 md:h-12 border-l-4 border-t-4 border-primary opacity-20" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 md:w-12 md:h-12 border-r-4 border-b-4 border-primary opacity-20" />
 
               <DebateTopicInput
                 topic={topic}
                 onTopicChange={setTopic}
                 onStartDebate={handleStartDebate}
                 isDebating={false}
-                startButtonText="Initialize API —"
+                startButtonText="Execute Synthesis —"
               />
             </div>
 
-            <div className="mt-12 flex flex-wrap justify-center gap-4">
+            <div className="mt-8 md:mt-12 flex flex-wrap justify-center gap-3 md:gap-4">
               {["Travel Hidden Gems", "Stocks to Watch", "Football Legends", "Global Street Food"].map((tag) => (
                 <Badge
                   key={tag}
                   variant="outline"
                   onClick={() => setTopic(tag)}
-                  className="rounded-none border-foreground/20 px-6 py-3 text-[10px] uppercase font-black tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer bg-background"
+                  className="rounded-none border-foreground/20 px-4 py-2 md:px-6 md:py-3 text-[10px] uppercase font-black tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer bg-background"
                 >
                   {tag} // 0X
                 </Badge>
@@ -88,25 +107,31 @@ export default function Landing() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* SECTION 3: HOW IT WORKS (SPLIT SCREEN) */}
-      <section className="relative py-48 px-6 border-b border-foreground/10 bg-foreground text-background z-10 overflow-hidden">
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="relative py-24 md:py-48 px-6 border-b border-foreground/10 bg-foreground text-background z-10 overflow-hidden"
+      >
         {/* Decorative Grid Lines */}
         <div className="absolute inset-0 opacity-5 pointer-events-none">
           <div className="absolute top-1/2 inset-x-0 h-px bg-background" />
           <div className="absolute left-1/2 inset-y-0 w-px bg-background" />
         </div>
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 items-center relative z-10">
-          <div className="space-y-16">
-            <div className="space-y-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-center relative z-10">
+          <div className="space-y-12 md:space-y-16">
+            <div className="space-y-6 md:space-y-8">
               <div className="text-[10px] uppercase font-black tracking-[0.5em] text-primary">System Architecture</div>
-              <h2 className="text-7xl font-black tracking-tighter uppercase leading-[0.85]">
-                Neural <br /><span className="text-primary italic">Convergence</span>
+              <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.85] break-words">
+                Neural <br /><span className="text-primary italic">Dialectic</span>
               </h2>
-              <p className="text-2xl text-background/60 font-medium max-w-lg leading-relaxed">
-                3F1 bridges the gap between raw LLM outputs and premium user experiences through a deterministic UI protocol.
+              <p className="text-xl md:text-2xl text-background/60 font-medium max-w-lg leading-relaxed">
+                3F1 orchestrates structured tension between three distinct intelligence factions to distill objective truth.
               </p>
             </div>
 
@@ -128,7 +153,7 @@ export default function Landing() {
                       {agent.desc}
                     </p>
                   </div>
-                  <div className="w-12 h-12 border border-background/10 flex items-center justify-center group-hover:border-primary/30 transition-colors">
+                  <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 border border-background/10 flex items-center justify-center group-hover:border-primary/30 transition-colors">
                     <div className="w-1.5 h-1.5 bg-background group-hover:bg-primary transition-colors" />
                   </div>
                 </div>
@@ -136,8 +161,8 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="relative aspect-square flex items-center justify-center p-1 bg-background border border-background/10 shadow-[40px_40px_0px_-10px_rgba(255,102,0,0.1)] transition-transform hover:scale-[1.02] duration-500">
-            <div className="w-full h-full grayscale hover:grayscale-0 transition-all duration-700 p-8 flex items-center justify-center border border-foreground/5">
+          <div className="relative aspect-square flex items-center justify-center p-1 bg-background border border-background/10 shadow-[20px_20px_0px_-5px_rgba(255,102,0,0.1)] md:shadow-[40px_40px_0px_-10px_rgba(255,102,0,0.1)] transition-transform hover:scale-[1.02] duration-500 max-w-sm mx-auto w-full lg:max-w-none">
+            <div className="w-full h-full grayscale hover:grayscale-0 transition-all duration-700 p-4 md:p-8 flex items-center justify-center border border-foreground/5">
               <AgentVisual />
             </div>
             {/* Coordinate markers in card corners */}
@@ -145,57 +170,35 @@ export default function Landing() {
             <span className="absolute bottom-4 right-4 text-[8px] font-black font-mono opacity-20">SEQ: 009827-X</span>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      {/* SECTION 4: BENTO FEATURES (BUILT FOR DEVELOPERS) */}
-      <section className="relative py-48 px-6 bg-background z-10 overflow-hidden">
+      {/* SECTION 4: THE TECH STACK */}
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="relative py-24 md:py-48 px-6 bg-background z-10 overflow-hidden"
+      >
         {/* Structural Line */}
         <div className="absolute top-0 left-[10%] bottom-0 w-px bg-foreground opacity-[0.03]" />
 
-        <div className="max-w-7xl mx-auto space-y-32">
-          <div className="text-center space-y-6">
-            <div className="text-[10px] uppercase font-black tracking-[0.5em] opacity-40 mb-4">Functional Specifications</div>
-            <h2 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-none">
-              Dev <span className="text-stroke">Protocol</span>
+        <div className="max-w-7xl mx-auto space-y-16 md:space-y-32">
+          <div className="text-center space-y-6 relative z-20">
+            <div className="text-[10px] uppercase font-black tracking-[0.5em] opacity-40 mb-4">Core Engine</div>
+            <h2 className="text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter uppercase leading-none break-words">
+              Built <span className="text-primary italic">With</span>
             </h2>
-            <p className="text-xl text-muted-foreground uppercase tracking-widest font-black max-w-2xl mx-auto opacity-50">
-              Low-latency components for high-stakes implementations.
+            <p className="text-lg md:text-xl text-muted-foreground uppercase tracking-widest font-black max-w-2xl mx-auto opacity-50">
+              High-performance middleware powered by bleeding edge technology.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 bg-foreground/5 p-1 border border-foreground/10">
-            {[
-              { title: "Universal AI Stack", desc: "OpenAI-compatible endpoints optimized for rapid interface layering." },
-              { title: "Dynamic Scaling", desc: "Native responsiveness with zero layout shift during real-time generation." },
-              { title: "Tool Convergence", desc: "Direct integration for file-handling, code execution, and data visualization." },
-              { title: "Component Foundry", desc: "Native React support with hot-swappable design tokens and modules." },
-              { title: "Unified Workflows", desc: "Integrated state management for complex multi-turn AI interactions." },
-              { title: "Core Resilience", desc: "Industrial-grade stability with built-in streaming fault tolerance." }
-            ].map((feature, i) => (
-              <Card key={feature.title} className="rounded-none border-none p-12 space-y-10 hover:bg-foreground hover:text-background transition-all group relative overflow-hidden bg-background">
-                {/* ID Marker */}
-                <div className="absolute top-6 right-6 text-[9px] font-black opacity-10 group-hover:text-primary group-hover:opacity-100 transition-all">
-                  DEV-ID: 0{i + 1}
-                </div>
-
-                <div className="w-10 h-10 border border-foreground/10 group-hover:border-background/20 flex items-center justify-center transition-colors">
-                  <div className="w-2 h-2 bg-primary group-hover:scale-150 transition-transform" />
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-2xl font-black uppercase tracking-tighter leading-tight">{feature.title}</h4>
-                  <p className="text-xs uppercase font-bold tracking-[0.1em] opacity-50 group-hover:opacity-80 leading-relaxed">{feature.desc}</p>
-                </div>
-
-                <div className="pt-8 border-t border-foreground/[0.05] group-hover:border-background/10 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-[8px] font-black tracking-widest">ENABLED</span>
-                  <div className="w-12 h-px bg-primary" />
-                </div>
-              </Card>
-            ))}
+          <div className="relative w-full z-20">
+            <TechCarousel />
           </div>
         </div>
-      </section>
+      </motion.section>
 
       <Footer />
     </div>

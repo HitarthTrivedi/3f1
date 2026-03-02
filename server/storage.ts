@@ -149,6 +149,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = process.env.DATABASE_URL
+export const storage = (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("your_database_url"))
   ? new DatabaseStorage()
   : new FirestoreStorage();

@@ -6,24 +6,33 @@ import { setupVite, serveStatic } from "./vite";
 (async () => {
   const { app, server } = await createApp();
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup Vite only in development
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  const port = parseInt(process.env.PORT || "5000", 10);
+
+  server.listen(
+    {
+      port,
+      host: "0.0.0.0",
+    },
+    () => {
+      // ANSI styles
+      const blue = "\x1b[34m";
+      const cyan = "\x1b[36m";
+      const bold = "\x1b[1m";
+      const reset = "\x1b[0m";
+
+      const localUrl = `http://localhost:${port}`;
+      const networkUrl = `http://0.0.0.0:${port}`;
+
+      log(`${bold}🚀 Server running:${reset}`);
+      log(`${cyan}👉 Local:${reset}   ${blue}${localUrl}${reset}`);
+      log(`${cyan}👉 Network:${reset} ${blue}${networkUrl}${reset}`);
+    }
+  );
 })();

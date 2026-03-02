@@ -178,12 +178,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .digest("hex");
 
       if (generatedSignature !== razorpay_signature) {
+        console.error(`[Payment Verify] Signature mismatch for user ${user.email}`);
+        console.error(`Expected: ${generatedSignature}`);
+        console.error(`Received: ${razorpay_signature}`);
         return res.status(400).json({ error: "Invalid payment signature" });
       }
 
-      // Calculate credits: ₹10 = 50 credits, so credits = (amount_in_paise / 100) * 5
-      const amountInRupees = amount / 100;
-      const creditsToAdd = Math.floor(amountInRupees * 5);
+      // Calculate credits based on frontend packages
+      const amountInRupees = Number(amount) / 100;
+      let creditsToAdd = 0;
+
+      console.log(`[Payment Verify] Processing payment: ₹${amountInRupees} for user ${user.email}`);
+
+      if (amountInRupees === 10) creditsToAdd = 50;
+      else if (amountInRupees === 50) creditsToAdd = 300;
+      else if (amountInRupees === 100) creditsToAdd = 650;
+      else if (amountInRupees === 500) creditsToAdd = 3500;
+      else {
+        // Fallback to standard ₹1 = 5 credits
+        creditsToAdd = Math.floor(amountInRupees * 5);
+      }
 
       // Update user credits
       const updatedUser = await storage.updateUserCredits(user.id, user.credits + creditsToAdd);
@@ -198,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "completed",
       });
 
-      console.log(`Payment successful: ${user.email} +${creditsToAdd} credits`);
+      console.log(`[Payment Verify] Success: Added ${creditsToAdd} credits to ${user.email}. New balance: ${updatedUser.credits}`);
       res.json({ success: true, credits: updatedUser.credits, creditsAdded: creditsToAdd });
     } catch (error) {
       console.error("Error verifying payment:", error);
@@ -212,8 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedConfig = debateConfigSchema.parse(req.body);
 
       // Check for Built-in usage
-      // const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin" || a.provider === "huggingface");
-      const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin");
+      const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin" || a.provider === "builtin_grok");
 
       if (!usesCredits) {
         // BYOK Flow: Verify all have keys
@@ -223,8 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         // Proceed unlimited
       } else {
-        // Built-in Flow -> Check Subscription / Free Tier
-
+        // Built-in Flow -> Pre-check Subscription / Free Tier
         if (req.firebaseUser) {
           // LOGGED IN USER FLOW (Firebase authenticated)
           const firebaseUser = req.firebaseUser;
@@ -234,27 +246,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(404).json({ error: "User not found. Please sign in again." });
           }
 
-          // Check Free Prompts
-          if (user.freePrompts > 0) {
-            await storage.decrementFreePrompt(user.id);
-            await storage.createTransaction({
-              userId: user.id,
-              type: "free_prompt",
-              amount: -1,
-              status: "completed",
-            });
-          }
-          // Check Credits
-          else if (user.credits >= 10) {
-            await storage.updateUserCredits(user.id, user.credits - 10);
-            await storage.createTransaction({
-              userId: user.id,
-              type: "debit",
-              amount: -10,
-              status: "completed",
-            });
-          }
-          else {
+          // Pre-check only
+          if (user.freePrompts <= 0 && user.credits < 10) {
             return res.status(402).json({ error: "Insufficient credits. Please buy more credits to continue." });
           }
         } else {
@@ -268,31 +261,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
               requiresAuth: true
             });
           }
-
-          // Increment anonymous usage
-          req.session.anonUsage = usage + 1;
         }
 
-        // Inject System Keys and Map Provider
-        validatedConfig.agents = validatedConfig.agents.map(agent => {
+        // Inject System Keys and Map Provider with better rotation
+        const availableGeminiKeys = [
+          process.env.GEMINI_API_KEY_1,
+          process.env.GEMINI_API_KEY_2,
+          process.env.GEMINI_API_KEY_3,
+          process.env.GEMINI_API_KEY
+        ].filter((key): key is string => !!key && key.length > 0 && !key.includes("_here"));
+
+        const availableGrokKeys = [
+          process.env.GROK_API_KEY
+        ].filter((key): key is string => !!key && key.length > 0 && !key.includes("_here"));
+
+        validatedConfig.agents = validatedConfig.agents.map((agent, index) => {
           if (agent.provider === "builtin") {
-            const selectedKey = getRandomGeminiKey();
-            console.log(`[Built-in AI] Allotted key: ${selectedKey.substring(0, 8)}...`);
+            // Mapping for Built-in Gemini
+            const selectedKey = availableGeminiKeys.length > 0
+              ? availableGeminiKeys[index % availableGeminiKeys.length]
+              : "";
+
+            console.log(`[Built-in Gemini] Agent ${index + 1} allotted key: ${selectedKey.substring(0, 8)}...`);
             return {
               ...agent,
               provider: "gemini", // Map to underlying provider
-              apiKey: selectedKey
+              apiKey: selectedKey,
+              model: "gemini-2.0-flash" // Force model for builtin
             };
-          }
-          /*
-          if (agent.provider === "huggingface") {
+          } else if (agent.provider === "builtin_grok") {
+            // Mapping for Built-in Grok
+            const selectedKey = availableGrokKeys.length > 0
+              ? availableGrokKeys[index % availableGrokKeys.length]
+              : "";
+
+            console.log(`[Built-in Grok] Agent ${index + 1} allotted key: ${selectedKey.substring(0, 8)}...`);
             return {
               ...agent,
-              apiKey: process.env.HUGGINGFACE_API_KEY || ""
+              provider: "grok", // Map to underlying provider
+              apiKey: selectedKey,
+              model: "grok-4-latest" // Force model for builtin
             };
           }
-          */
-          // Ensure other agents have keys (already checked generally, but safe to keep as is)
           return agent;
         });
       }
@@ -312,14 +322,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sendMessage
         );
 
+        // ONLY DEDUCT AFTER SUCCESSFUL DEBATE
+        if (usesCredits && req.firebaseUser) {
+          const firebaseUser = req.firebaseUser;
+          const user = await storage.getUserByFirebaseUid(firebaseUser.uid);
+
+          if (user) {
+            if (user.freePrompts > 0) {
+              await storage.decrementFreePrompt(user.id);
+              await storage.createTransaction({
+                userId: user.id,
+                type: "free_prompt",
+                amount: -1,
+                status: "completed",
+              });
+              console.log(`[Debate Success] Deducted 1 free prompt from ${user.email}`);
+            } else if (user.credits >= 10) {
+              await storage.updateUserCredits(user.id, user.credits - 10);
+              await storage.createTransaction({
+                userId: user.id,
+                type: "debit",
+                amount: -10,
+                status: "completed",
+              });
+              console.log(`[Debate Success] Deducted 10 credits from ${user.email}`);
+            }
+          }
+        } else if (usesCredits && !req.firebaseUser) {
+          // ANONYMOUS USER FLOW - Increment usage after successful debate
+          req.session.anonUsage = (req.session.anonUsage || 0) + 1;
+          console.log(`[Debate Success] Anonymous user used 1 free prompt. Total: ${req.session.anonUsage}`);
+        }
+
         res.write(`data: ${JSON.stringify({ type: "complete", messages })}\n\n`);
         res.end();
-      } catch (debateError) {
+      } catch (debateError: any) {
         console.error("Debate error:", debateError);
-        res.write(`data: ${JSON.stringify({
-          type: "error",
-          error: debateError instanceof Error ? debateError.message : "Debate execution failed"
-        })}\n\n`);
+
+        let errorMessage = "Debate execution failed";
+        const errorStr = JSON.stringify(debateError).toLowerCase();
+        const message = (debateError?.message || debateError?.error || debateError?.toString() || "").toLowerCase();
+
+        if (message.includes("api_key_invalid") || message.includes("expired") || errorStr.includes("api_key_invalid")) {
+          errorMessage = "AI Service Error: The API key for the AI provider is invalid or expired. Check your configuration.";
+        } else if (message.includes("credits or licenses") || message.includes("insufficient_quota") || message.includes("credit limit") || errorStr.includes("credits or licenses") || errorStr.includes("insufficient_quota")) {
+          errorMessage = "External Provider Error: Your AI provider account (Grok/x.ai) has no credits. Please top up your balance at https://console.x.ai/. (Note: This is separate from your 3F1 credits).";
+        } else if (debateError instanceof Error) {
+          errorMessage = debateError.message;
+        } else if (typeof debateError === "string") {
+          errorMessage = debateError;
+        }
+
+        res.write(`data: ${JSON.stringify({ type: "error", error: errorMessage })}\n\n`);
         res.end();
       }
     } catch (error) {
@@ -447,30 +501,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
-}
-
-function getRandomGeminiKey(): string {
-  const keys = [
-    process.env.GEMINI_API_KEY_1,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3
-  ].filter((key): key is string => !!key && key.length > 0 && !key.includes("_here"));
-
-  if (keys.length === 0) {
-    return process.env.GEMINI_API_KEY || "";
-  }
-
-  const randomIndex = Math.floor(Math.random() * keys.length);
-  return keys[randomIndex];
-}
-
-function getSystemKey(provider: string): string | undefined {
-  // Simple helper to get env vars based on provider
-  switch (provider.toLowerCase()) {
-    case "openai": return process.env.OPENAI_API_KEY;
-    case "gemini": return getRandomGeminiKey();
-    case "perplexity": return process.env.PERPLEXITY_API_KEY;
-    case "huggingface": return process.env.HUGGINGFACE_API_KEY;
-    default: return undefined;
-  }
 }

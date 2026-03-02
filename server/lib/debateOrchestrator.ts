@@ -149,16 +149,8 @@ export async function runDebate(
         onMessage(message);
       } catch (error) {
         console.error(`Error with agent ${agent.name}:`, error);
-        const errorMessage: DebateMessage = {
-          id: randomUUID(),
-          agentName: agent.name,
-          agentNumber: i,
-          message: `Error generating response: ${error instanceof Error ? error.message : "Unknown error"}`,
-          timestamp: new Date().toISOString(),
-          round,
-        };
-        history.push(errorMessage);
-        onMessage(errorMessage);
+        // Throw the error so the top-level route handler can catch it and avoid deduction
+        throw error;
       }
     }
   }

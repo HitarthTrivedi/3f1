@@ -25,7 +25,7 @@ export default function DebateTopicInput({
         <Label htmlFor="debate-topic" className="text-[10px] uppercase font-black tracking-[0.4em] opacity-60">The Thesis Topic</Label>
         <Textarea
           id="debate-topic"
-          placeholder="What should these AI agents debate about?"
+          placeholder="What should these factions debate about?"
           value={topic}
           onChange={(e) => onTopicChange(e.target.value)}
           className="h-48 resize-none text-lg font-medium rounded-none border-2 border-foreground/10 focus:border-foreground transition-colors bg-background placeholder:opacity-30"

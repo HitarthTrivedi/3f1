@@ -64,9 +64,13 @@ export class FirestoreStorage implements IStorage {
         if (!doc) throw new Error("User not found");
 
         const updatedData = { credits };
+        console.log(`[FirestoreStorage] Updating credits for user ID ${userId} to ${credits}`);
         await doc.ref.update(updatedData);
 
-        return { ...(doc.data() as User), ...updatedData };
+        const finalData = (await doc.ref.get()).data() as User;
+        console.log(`[FirestoreStorage] Verified credits for user ID ${userId}: ${finalData.credits}`);
+
+        return finalData;
     }
 
     async decrementFreePrompt(userId: number): Promise<User> {

@@ -31,8 +31,8 @@ export function Footer() {
                         </div>
 
                         <p className="text-lg text-muted-foreground font-medium leading-relaxed max-w-sm">
-                            The Generative UI Company. <br />
-                            <span className="text-foreground">Augmenting LLMs with interactive, real-time interfaces.</span>
+                            The Dialectic Intelligence Platform. <br />
+                            <span className="text-foreground">Orchestrating triadic conflict to distill objective truth.</span>
                         </p>
 
                         <div className="flex gap-2">

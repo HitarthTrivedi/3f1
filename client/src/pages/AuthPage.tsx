@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AuthPage() {
     const { user, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
@@ -87,6 +88,10 @@ export default function AuthPage() {
                 <div className="absolute inset-y-0 left-[90%] w-px bg-foreground" />
             </div>
 
+            <div className="fixed top-6 right-6 z-50">
+                <ThemeToggle />
+            </div>
+
             <div className="relative z-10 w-full max-w-lg space-y-12">
                 <div className="flex flex-col items-center space-y-4">
                     <Link href="/">
@@ -95,13 +100,16 @@ export default function AuthPage() {
                             Return to Hub
                         </Button>
                     </Link>
-                    <h1 className="text-6xl font-black tracking-tighter uppercase leading-none">
+                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none">
                         Identity <span className="text-stroke">Portal</span>
                     </h1>
                 </div>
 
-                <Card className="w-full rounded-none border-2 border-foreground bg-background shadow-[24px_24px_0px_0px_rgba(0,0,0,1)] dark:shadow-[24px_24px_0px_0px_rgba(255,255,255,1)] relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 text-[8px] font-black opacity-10 tracking-[0.2em] select-none">3F1.SECURE_ACCESS</div>
+                <Card className="w-full rounded-none border-2 border-foreground bg-background shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:shadow-[12px_12px_0px_0px_rgba(255,102,0,0.2)] md:shadow-[24px_24px_0px_0px_rgba(0,0,0,1)] md:dark:shadow-[24px_24px_0px_0px_rgba(255,102,0,0.2)] relative overflow-hidden transition-all group">
+                    <div className="absolute inset-0 pointer-events-none opacity-[0.02] dark:opacity-[0.05] bg-[linear-gradient(rgba(255,102,0,0.1)_1px,transparent_1px)] bg-[size:100%_4px]" />
+                    <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-primary opacity-30 dark:opacity-40" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-primary opacity-30 dark:opacity-40" />
+                    <div className="absolute top-0 right-0 p-4 text-[8px] font-black opacity-10 tracking-[0.2em] select-none uppercase">3F1.SECURE_ACCESS</div>
 
                     <CardHeader className="p-10 pb-6 border-b border-foreground/5">
                         <CardTitle className="text-2xl font-black uppercase tracking-tighter">Initialize Session</CardTitle>
