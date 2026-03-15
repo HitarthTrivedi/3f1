@@ -287,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ...agent,
               provider: "gemini", // Map to underlying provider
               apiKey: selectedKey,
-              model: "gemini-2.0-flash" // Force model for builtin
+              model: "gemini-2.5-flash" // Force model for builtin
             };
           } else if (agent.provider === "builtin_grok") {
             // Mapping for Built-in Grok
