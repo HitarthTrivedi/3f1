@@ -220,10 +220,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // --- Debate Route ---
+  // --- Debate Routes ---
+
+  // Get active debate for user
+  app.get("/api/debate/active", requireAuth, async (req, res) => {
+    try {
+      const firebaseUser = req.firebaseUser!;
+      const user = await storage.getUserByFirebaseUid(firebaseUser.uid);
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const activeDebate = await storage.getActiveDebate(user.id);
+
+      if (!activeDebate) {
+        return res.json({ hasActiveDebate: false });
+      }
+
+      res.json({
+        hasActiveDebate: true,
+        debate: activeDebate
+      });
+    } catch (error) {
+      console.error("Error fetching active debate:", error);
+      res.status(500).json({ error: "Failed to fetch active debate" });
+    }
+  });
+
+  // Clear active debate
+  app.delete("/api/debate/active", requireAuth, async (req, res) => {
+    try {
+      const firebaseUser = req.firebaseUser!;
+      const user = await storage.getUserByFirebaseUid(firebaseUser.uid);
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      await storage.clearActiveDebate(user.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error clearing active debate:", error);
+      res.status(500).json({ error: "Failed to clear active debate" });
+    }
+  });
+
   app.post("/api/debate/start", optionalAuth, async (req, res) => {
     try {
       const validatedConfig = debateConfigSchema.parse(req.body);
+
+      let localUser: any = null;
+      if (req.firebaseUser) {
+        localUser = await storage.getUserByFirebaseUid(req.firebaseUser.uid);
+        if (!localUser) {
+          return res.status(404).json({ error: "User not found. Please sign in again." });
+        }
+      }
 
       // Check for Built-in usage
       const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin" || a.provider === "builtin_grok");
@@ -237,17 +290,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Proceed unlimited
       } else {
         // Built-in Flow -> Pre-check Subscription / Free Tier
-        if (req.firebaseUser) {
-          // LOGGED IN USER FLOW (Firebase authenticated)
-          const firebaseUser = req.firebaseUser;
-          const user = await storage.getUserByFirebaseUid(firebaseUser.uid);
-
-          if (!user) {
-            return res.status(404).json({ error: "User not found. Please sign in again." });
-          }
-
+        if (localUser) {
           // Pre-check only
-          if (user.freePrompts <= 0 && user.credits < 10) {
+          if (localUser.freePrompts <= 0 && localUser.credits < 10) {
             return res.status(402).json({ error: "Insufficient credits. Please buy more credits to continue." });
           }
         } else {
@@ -311,8 +356,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
+      const sentMessages: DebateMessage[] = [];
+
+      if (localUser) {
+        try {
+          await storage.saveActiveDebate(localUser.id, {
+            topic: validatedConfig.topic,
+            agents: validatedConfig.agents,
+            messages: sentMessages
+          });
+        } catch (e) {
+          console.error("Failed to save initial active debate:", e);
+        }
+      }
+
       const sendMessage = (message: DebateMessage) => {
         res.write(`data: ${JSON.stringify(message)}\n\n`);
+        sentMessages.push(message);
+
+        if (localUser) {
+          storage.saveActiveDebate(localUser.id, {
+            topic: validatedConfig.topic,
+            agents: validatedConfig.agents,
+            messages: [...sentMessages]
+          }).catch(e => console.error("Mid-debate save error:", e));
+        }
       };
 
       try {
@@ -352,6 +420,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // ANONYMOUS USER FLOW - Increment usage after successful debate
           req.session.anonUsage = (req.session.anonUsage || 0) + 1;
           console.log(`[Debate Success] Anonymous user used 1 free prompt. Total: ${req.session.anonUsage}`);
+        }
+
+        // Final save just to be sure, and to log completion
+        if (localUser && messages.length > 0) {
+          try {
+            await storage.saveActiveDebate(localUser.id, {
+              topic: validatedConfig.topic,
+              agents: validatedConfig.agents,
+              messages: messages
+            });
+            console.log(`[Debate Persistence] Saved final state for ${localUser.email}`);
+          } catch (storageError) {
+            console.error("Failed to save final active debate:", storageError);
+          }
         }
 
         res.write(`data: ${JSON.stringify({ type: "complete", messages })}\n\n`);
@@ -411,6 +493,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found. Please sign in again." });
       }
 
+      const { messages } = req.body;
+      if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({ error: "No messages provided." });
+      }
+
       // Deduct 5 credits for TTS
       const TTS_CREDIT_COST = 5;
       if (ttsUser.credits < TTS_CREDIT_COST) {
@@ -426,70 +513,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       console.log(`TTS credit deduction: ${ttsUser.email} -${TTS_CREDIT_COST} credits`);
 
-      const { messages } = req.body;
-      if (!messages || !Array.isArray(messages) || messages.length === 0) {
-        return res.status(400).json({ error: "No messages provided." });
-      }
-
-      // Process messages in chronological order, generating audio for each
-      const audioSegments: Array<{
-        agentName: string;
-        agentNumber: number;
-        round: number;
-        audioBase64: string;
-      }> = [];
-
-      for (const msg of messages) {
-        const voiceId = AGENT_VOICES[msg.agentNumber] || "george";
-
+      let creditsDeducted = true;
+      const refundCredits = async () => {
+        if (!creditsDeducted) return;
         try {
-          // Strip markdown formatting for cleaner TTS
-          const cleanText = msg.message
-            .replace(/[*_#`~]/g, "")
-            .replace(/\n{3,}/g, "\n\n")
-            .trim();
-
-          if (!cleanText) continue;
-
-          const speechifyResponse = await fetch("https://api.sws.speechify.com/v1/audio/speech", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${speechifyKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              input: cleanText.substring(0, 5000), // Speechify has input limits
-              voice_id: voiceId,
-              audio_format: "mp3",
-            }),
-          });
-
-          if (!speechifyResponse.ok) {
-            const errText = await speechifyResponse.text();
-            console.error(`Speechify error for ${msg.agentName}:`, errText);
-            continue; // Skip this segment but continue with others
+          const currentUser = await storage.getUserByFirebaseUid(firebaseUser.uid);
+          if (currentUser) {
+            await storage.updateUserCredits(currentUser.id, currentUser.credits + TTS_CREDIT_COST);
+            await storage.createTransaction({
+              userId: currentUser.id,
+              type: "refund",
+              amount: TTS_CREDIT_COST,
+              status: "completed",
+            });
+            console.log(`TTS credit refund: ${currentUser.email} +${TTS_CREDIT_COST} credits (Generation Failed)`);
           }
-
-          const result = await speechifyResponse.json() as any;
-
-          audioSegments.push({
-            agentName: msg.agentName,
-            agentNumber: msg.agentNumber,
-            round: msg.round,
-            audioBase64: result.audio_data, // Speechify returns base64 audio_data
-          });
-
-        } catch (ttsError) {
-          console.error(`TTS error for ${msg.agentName}:`, ttsError);
-          continue;
+          creditsDeducted = false;
+        } catch (e) {
+          console.error("Failed to refund credits:", e);
         }
-      }
+      };
 
-      if (audioSegments.length === 0) {
-        return res.status(500).json({ error: "Failed to generate any audio segments." });
-      }
+      try {
+        // Process messages in chronological order, generating audio for each
+        const audioSegments: Array<{
+          agentName: string;
+          agentNumber: number;
+          round: number;
+          audioBase64: string;
+        }> = [];
 
-      res.json({ segments: audioSegments });
+        for (const msg of messages) {
+          const voiceId = AGENT_VOICES[msg.agentNumber] || "george";
+
+          try {
+            // Strip markdown formatting for cleaner TTS
+            const cleanText = msg.message
+              .replace(/[*_#`~]/g, "")
+              .replace(/\n{3,}/g, "\n\n")
+              .trim();
+
+            if (!cleanText) continue;
+
+            const speechifyResponse = await fetch("https://api.sws.speechify.com/v1/audio/speech", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${speechifyKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                input: cleanText.substring(0, 5000), // Speechify has input limits
+                voice_id: voiceId,
+                audio_format: "mp3",
+              }),
+            });
+
+            if (!speechifyResponse.ok) {
+              const errText = await speechifyResponse.text();
+              console.error(`Speechify error for ${msg.agentName}:`, errText);
+              continue; // Skip this segment but continue with others
+            }
+
+            const result = await speechifyResponse.json() as any;
+
+            audioSegments.push({
+              agentName: msg.agentName,
+              agentNumber: msg.agentNumber,
+              round: msg.round,
+              audioBase64: result.audio_data, // Speechify returns base64 audio_data
+            });
+
+          } catch (ttsError) {
+            console.error(`TTS error for ${msg.agentName}:`, ttsError);
+            continue;
+          }
+        }
+
+        if (audioSegments.length === 0) {
+          await refundCredits();
+          return res.status(500).json({ error: "Failed to generate any audio segments." });
+        }
+
+        res.json({ segments: audioSegments });
+      } catch (processError) {
+        await refundCredits();
+        throw processError;
+      }
     } catch (error) {
       console.error("TTS generation error:", error);
       res.status(500).json({

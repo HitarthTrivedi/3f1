@@ -37,8 +37,8 @@ export default function Landing() {
 
       {/* Global Background Infrastructure */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
-        <div className="absolute top-1/4 left-10 text-[10px] font-black tracking-widest vertical-text select-none">3F1.PROTO // SECTOR_01</div>
-        <div className="absolute top-3/4 right-10 text-[10px] font-black tracking-widest vertical-text select-none">3F1.PROTO // SECTOR_02</div>
+        <div className="absolute top-1/4 left-10 text-[10px] font-black tracking-widest vertical-text select-none"><span className="font-logo">3F1</span>.PROTO // SECTOR_01</div>
+        <div className="absolute top-3/4 right-10 text-[10px] font-black tracking-widest vertical-text select-none"><span className="font-logo">3F1</span>.PROTO // SECTOR_02</div>
 
         {/* Vertical lines that span full height */}
         <div className="absolute inset-y-0 left-[10%] w-px bg-foreground" />
@@ -74,7 +74,7 @@ export default function Landing() {
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed opacity-70">
               Engage high-performance agentic reasoning through structured conflict and synthesis. <br />
-              <span className="text-foreground">Initialize the 3F1 protocol below.</span>
+              <span className="text-foreground">Initialize the <span className="font-logo">3F1</span> protocol below.</span>
             </p>
           </div>
 
@@ -131,7 +131,7 @@ export default function Landing() {
                 Neural <br /><span className="text-primary italic">Dialectic</span>
               </h2>
               <p className="text-xl md:text-2xl text-background/60 font-medium max-w-lg leading-relaxed">
-                3F1 orchestrates structured tension between three distinct intelligence factions to distill objective truth.
+                <span className="font-logo">3F1</span> orchestrates structured tension between three distinct intelligence factions to distill objective truth.
               </p>
             </div>
 

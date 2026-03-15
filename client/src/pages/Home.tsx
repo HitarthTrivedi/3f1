@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
 import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
@@ -51,6 +51,59 @@ export default function Home() {
 
   const agents = [agent1, agent2, agent3];
   const usesCredits = agents.some(a => a.provider === "builtin" || a.provider === "builtin_grok" || a.provider === "huggingface");
+
+  // Check for active debate on mount
+  useEffect(() => {
+    const fetchActiveDebate = async () => {
+      if (!user) return; // Only for logged in users
+
+      try {
+        const token = await getIdToken();
+        const headers: HeadersInit = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const response = await fetch("/api/debate/active", { headers });
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        if (data.hasActiveDebate && data.debate) {
+          const activeDebate = data.debate;
+
+          setTopic(activeDebate.topic);
+          setMessages(activeDebate.messages);
+          setDebateComplete(true);
+
+          if (activeDebate.agents && activeDebate.agents.length === 3) {
+            setAgent1({
+              provider: activeDebate.agents[0].provider || "builtin",
+              model: activeDebate.agents[0].model || "gemini-2.5-flash",
+              apiKey: activeDebate.agents[0].apiKey || "",
+            });
+            setAgent2({
+              provider: activeDebate.agents[1].provider || "builtin",
+              model: activeDebate.agents[1].model || "gemini-2.5-flash",
+              apiKey: activeDebate.agents[1].apiKey || "",
+            });
+            setAgent3({
+              provider: activeDebate.agents[2].provider || "builtin",
+              model: activeDebate.agents[2].model || "gemini-2.5-flash",
+              apiKey: activeDebate.agents[2].apiKey || "",
+            });
+          }
+
+          toast({
+            title: "Session Restored",
+            description: "Your previous dialectic synthesis has been restored.",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch active debate:", error);
+      }
+    };
+
+    fetchActiveDebate();
+  }, [user]);
 
   const handleStartDebate = async () => {
     if (!agent1.provider || !agent2.provider || !agent3.provider) {
@@ -274,7 +327,7 @@ export default function Home() {
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
         <div className="absolute top-10 left-10 text-[10px] font-black tracking-widest">[00:00] -- ORIGIN</div>
         <div className="absolute top-10 right-10 text-[10px] font-black tracking-widest">INFRA // AX-01</div>
-        <div className="absolute bottom-10 left-10 text-[10px] font-black tracking-widest">3F1.OS_V2.0.4</div>
+        <div className="absolute bottom-10 left-10 text-[10px] font-black tracking-widest"><span className="font-logo">3F1</span>.OS_V2.0.4</div>
         <div className="absolute bottom-10 right-10 text-[10px] font-black tracking-widest">TERMINAL // ACTIVE</div>
 
         {/* Vertical lines that span full height */}
@@ -296,7 +349,7 @@ export default function Home() {
               </Button>
             </Link>
             <div className="relative">
-              <h1 className="text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none" data-testid="text-logo">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none font-logo" data-testid="text-logo">
                 3F1 <span className="text-primary italic">—</span>
               </h1>
               <div className="hidden xs:flex items-center gap-2 mt-1">
@@ -309,7 +362,7 @@ export default function Home() {
           <div className="flex items-center gap-2 md:gap-4 ml-auto sm:ml-0">
             <div className="hidden xl:flex flex-col items-end mr-8 border-r border-foreground/10 pr-8">
               <span className="text-[8px] uppercase font-black tracking-[0.3em] opacity-30">Security Terminal</span>
-              <span className="text-[10px] uppercase font-black tracking-widest text-primary">Secure // Protocol 3F1.X</span>
+              <span className="text-[10px] uppercase font-black tracking-widest text-primary">Secure // Protocol <span className="font-logo">3F1</span>.X</span>
             </div>
 
             <ThemeToggle />
@@ -483,7 +536,9 @@ export default function Home() {
                 </div>
 
                 <div className="relative z-10 flex flex-col items-center text-center space-y-12">
-                  <div className="text-[10px] uppercase tracking-[0.5em] font-black opacity-40">Process Completed Successfully</div>
+                  <div className="text-[10px] uppercase tracking-[0.5em] font-black opacity-40">
+                    {messages.length < 15 ? "Process Interrupted - Partial Data Recovered" : "Process Completed Successfully"}
+                  </div>
                   <DownloadSection
                     onDownloadJson={handleDownloadJson}
                     onDownloadText={handleDownloadText}
@@ -496,7 +551,7 @@ export default function Home() {
                 <Button
                   variant="outline"
                   className="rounded-none h-20 px-16 border-2 border-foreground text-foreground hover:bg-foreground hover:text-background font-black uppercase text-base tracking-widest transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-[-8px] translate-y-[-8px] hover:translate-x-0 hover:translate-y-0"
-                  onClick={() => {
+                  onClick={async () => {
                     if (!user) {
                       toast({
                         title: "Registration Required",
@@ -505,12 +560,28 @@ export default function Home() {
                       setLocation("/auth");
                       return;
                     }
+
+                    // Clear active debate from server
+                    try {
+                      const token = await getIdToken();
+                      const headers: HeadersInit = {};
+                      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+                      await fetch("/api/debate/active", {
+                        method: "DELETE",
+                        headers
+                      });
+                    } catch (error) {
+                      console.error("Failed to clear active debate:", error);
+                    }
+
                     if (usesCredits) {
                       window.location.reload();
                     } else {
                       setDebateComplete(false);
                       setMessages([]);
                       setIsDebating(false);
+                      setTopic(""); // Clear topic as well for a fresh start
                     }
                   }}
                 >

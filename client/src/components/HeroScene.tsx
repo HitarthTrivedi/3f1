@@ -22,15 +22,15 @@ export const HeroScene = () => {
                     className="space-y-6"
                 >
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-none border border-primary text-[10px] uppercase tracking-[0.2em] text-primary font-bold">
-                        Introducing 3F1.OS debate
+                        Introducing <span className="font-logo">3F1</span>.OS debate
                     </div>
 
-                    <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-foreground">
-                        3<span className="text-primary italic">F1</span>
+                    <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-foreground font-logo">
+                        3F1
                     </h1>
 
                     <p className="text-lg md:text-2xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-                        3F1 leverages a three-agent dialectic protocol to distill complex topics into objective, structured synthesis.
+                        <span className="font-logo">3F1</span> leverages a three-agent dialectic protocol to distill complex topics into objective, structured synthesis.
                     </p>
                 </motion.div>
 

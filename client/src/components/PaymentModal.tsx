@@ -19,10 +19,8 @@ interface CreditPackage {
 }
 
 const creditPackages: CreditPackage[] = [
-    { amount: 10, credits: 50 },
-    { amount: 50, credits: 300, popular: true },
-    { amount: 100, credits: 650 },
-    { amount: 500, credits: 3500 },
+    { amount: 25, credits: 25 },
+    { amount: 35, credits: 50, popular: true },
 ];
 
 export default function PaymentModal({ open, onOpenChange }: PaymentModalProps) {
@@ -231,7 +229,7 @@ export default function PaymentModal({ open, onOpenChange }: PaymentModalProps) 
                                 <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] opacity-30 italic-primary">Secure Transaction Flow</span>
                                 <div className="h-px w-6 sm:w-8 bg-foreground/10" />
                             </div>
-                            <p className="text-[7px] sm:text-[9px] uppercase font-bold tracking-widest opacity-40">Powered by Razorpay Node Interface // ₹10 = 50 Units (Standard)</p>
+                            <p className="text-[7px] sm:text-[9px] uppercase font-bold tracking-widest opacity-40">Powered by Razorpay Node Interface // ₹25 = 25 Units (Standard)</p>
                         </div>
                     </div>
                 </div>

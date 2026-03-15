@@ -120,4 +120,31 @@ export class FirestoreStorage implements IStorage {
 
         return snapshot.docs.map(doc => doc.data() as Transaction);
     }
+
+    async saveActiveDebate(userId: number, debateData: { topic: string; agents: any[]; messages: any[] }): Promise<void> {
+        // Use user ID as the document ID for quick lookup
+        await this.db.collection("active_debates").doc(userId.toString()).set({
+            userId,
+            topic: debateData.topic,
+            agents: debateData.agents,
+            messages: debateData.messages,
+            updatedAt: Date.now()
+        }, { merge: true }); // Upsert
+    }
+
+    async getActiveDebate(userId: number): Promise<{ topic: string; agents: any[]; messages: any[] } | null> {
+        const doc = await this.db.collection("active_debates").doc(userId.toString()).get();
+        if (!doc.exists) return null;
+
+        const data = doc.data();
+        return {
+            topic: data?.topic || "",
+            agents: data?.agents || [],
+            messages: data?.messages || []
+        };
+    }
+
+    async clearActiveDebate(userId: number): Promise<void> {
+        await this.db.collection("active_debates").doc(userId.toString()).delete();
+    }
 }

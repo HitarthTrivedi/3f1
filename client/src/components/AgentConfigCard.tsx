@@ -137,7 +137,7 @@ export default function AgentConfigCard({
         {/* Technical Footer Indicator */}
         <div className="pt-6 border-t border-foreground/[0.05] flex items-center justify-between">
           <div className="text-[8px] uppercase font-black tracking-[0.3em] opacity-20 group-hover:opacity-40 transition-opacity">
-            OS-V2 // 3F1.SECURE.LINK
+            OS-V2 // <span className="font-logo">3F1</span>.SECURE.LINK
           </div>
           <div className="text-[8px] uppercase font-black tracking-[0.3em] opacity-10 group-hover:text-primary group-hover:opacity-100 transition-all">
             MOD.IDENT // 0x{agentNumber}F1

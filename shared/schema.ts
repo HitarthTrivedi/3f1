@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -25,6 +25,16 @@ export const transactions = pgTable("transactions", {
   createdAt: integer("created_at").notNull().default(Date.now()),
 });
 
+// Active debates for persistent sessions
+export const activeDebates = pgTable("active_debates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id).unique(), // Only one active debate per user
+  topic: text("topic").notNull(),
+  agents: jsonb("agents").notNull(), // Array of agent definitions
+  messages: jsonb("messages").notNull(), // Array of debate messages
+  updatedAt: integer("updated_at").notNull().default(Date.now()),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   firebaseUid: true,
   email: true,
@@ -34,6 +44,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
+export type ActiveDebate = typeof activeDebates.$inferSelect;
 
 export const agentConfigSchema = z.object({
   name: z.string(),

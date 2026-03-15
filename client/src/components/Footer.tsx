@@ -18,7 +18,7 @@ export function Footer() {
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
                                 <h3 className="text-4xl font-black tracking-tighter uppercase leading-none">
-                                    3F1 <span className="text-primary italic">—</span>
+                                    <span className="font-logo">3F1</span> <span className="text-primary italic">—</span>
                                 </h3>
                                 <div className="px-2 py-0.5 border border-primary/20 text-[8px] uppercase tracking-[0.3em] font-black text-primary">
                                     HQ.LAX
@@ -97,7 +97,7 @@ export function Footer() {
 
                 <div className="mt-16 text-center">
                     <span className="text-[9px] uppercase tracking-[0.6em] font-black opacity-10">
-                        © {currentYear} 3F1 INC — GLOBAL CORE INFRASTRUCTURE
+                        © {currentYear} <span className="font-logo">3F1</span> INC — GLOBAL CORE INFRASTRUCTURE
                     </span>
                 </div>
             </div>

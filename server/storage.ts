@@ -11,6 +11,11 @@ export interface IStorage {
   decrementFreePrompt(userId: number): Promise<User>;
   createTransaction(transaction: { userId: number; type: string; amount: number; razorpayOrderId?: string; razorpayPaymentId?: string; status?: string }): Promise<Transaction>;
   getTransactionsByUserId(userId: number): Promise<Transaction[]>;
+
+  // Debate Session Persistence
+  saveActiveDebate(userId: number, debateData: { topic: string; agents: any[]; messages: any[] }): Promise<void>;
+  getActiveDebate(userId: number): Promise<{ topic: string; agents: any[]; messages: any[] } | null>;
+  clearActiveDebate(userId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -67,17 +72,63 @@ export class DatabaseStorage implements IStorage {
   async getTransactionsByUserId(userId: number): Promise<Transaction[]> {
     return db!.select().from(transactions).where(eq(transactions.userId, userId));
   }
+
+  async saveActiveDebate(userId: number, debateData: { topic: string; agents: any[]; messages: any[] }): Promise<void> {
+    // We would need to import activeDebates from schema
+    const { activeDebates } = await import("@shared/schema");
+
+    // Check if exists
+    const existing = await db!.select().from(activeDebates).where(eq(activeDebates.userId, userId));
+
+    if (existing && existing.length > 0) {
+      await db!.update(activeDebates)
+        .set({
+          topic: debateData.topic,
+          agents: debateData.agents,
+          messages: debateData.messages,
+          updatedAt: Date.now()
+        })
+        .where(eq(activeDebates.userId, userId));
+    } else {
+      await db!.insert(activeDebates).values({
+        userId,
+        topic: debateData.topic,
+        agents: debateData.agents,
+        messages: debateData.messages,
+        updatedAt: Date.now()
+      });
+    }
+  }
+
+  async getActiveDebate(userId: number): Promise<{ topic: string; agents: any[]; messages: any[] } | null> {
+    const { activeDebates } = await import("@shared/schema");
+    const [debate] = await db!.select().from(activeDebates).where(eq(activeDebates.userId, userId));
+
+    if (!debate) return null;
+    return {
+      topic: debate.topic,
+      agents: debate.agents as any[],
+      messages: debate.messages as any[]
+    };
+  }
+
+  async clearActiveDebate(userId: number): Promise<void> {
+    const { activeDebates } = await import("@shared/schema");
+    await db!.delete(activeDebates).where(eq(activeDebates.userId, userId));
+  }
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private transactions: Map<number, Transaction>;
+  private activeDebates: Map<number, { topic: string; agents: any[]; messages: any[] }>;
   private currentId: number;
   private currentTransactionId: number;
 
   constructor() {
     this.users = new Map();
     this.transactions = new Map();
+    this.activeDebates = new Map();
     this.currentId = 1;
     this.currentTransactionId = 1;
   }
@@ -146,6 +197,18 @@ export class MemStorage implements IStorage {
     return Array.from(this.transactions.values()).filter(
       (transaction) => transaction.userId === userId
     );
+  }
+
+  async saveActiveDebate(userId: number, debateData: { topic: string; agents: any[]; messages: any[] }): Promise<void> {
+    this.activeDebates.set(userId, debateData);
+  }
+
+  async getActiveDebate(userId: number): Promise<{ topic: string; agents: any[]; messages: any[] } | null> {
+    return this.activeDebates.get(userId) || null;
+  }
+
+  async clearActiveDebate(userId: number): Promise<void> {
+    this.activeDebates.delete(userId);
   }
 }
 
