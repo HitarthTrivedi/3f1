@@ -8,3 +8,5 @@ vite.config.ts.*
 
 # Firebase service account
 firebase_service_account.json
+server/firebase_service_account.json
+add-credits.ts
