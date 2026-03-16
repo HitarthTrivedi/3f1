@@ -24,10 +24,6 @@ export function Footer() {
                                     HQ.LAX
                                 </div>
                             </div>
-                            <div className="text-[10px] uppercase tracking-[0.4em] font-black opacity-30 flex items-center gap-2">
-                                <span className="w-4 h-px bg-foreground/30" />
-                                34.0522° N, 118.2437° W
-                            </div>
                         </div>
 
                         <p className="text-lg text-muted-foreground font-medium leading-relaxed max-w-sm">

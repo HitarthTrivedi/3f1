@@ -322,7 +322,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground italic-primary overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground overflow-x-hidden">
       {/* Structural technical background grid */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
         <div className="absolute top-10 left-10 text-[10px] font-black tracking-widest">[00:00] -- ORIGIN</div>
@@ -360,10 +360,7 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4 ml-auto sm:ml-0">
-            <div className="hidden xl:flex flex-col items-end mr-8 border-r border-foreground/10 pr-8">
-              <span className="text-[8px] uppercase font-black tracking-[0.3em] opacity-30">Security Terminal</span>
-              <span className="text-[10px] uppercase font-black tracking-widest text-primary">Secure // Protocol <span className="font-logo">3F1</span>.X</span>
-            </div>
+
 
             <ThemeToggle />
 
@@ -509,7 +506,7 @@ export default function Home() {
               <div className="flex flex-col items-center text-center space-y-6">
                 <div className="flex items-center gap-4 w-full max-w-md">
                   <div className="h-px flex-1 bg-primary/20" />
-                  <Badge variant="outline" className="rounded-none border-primary text-primary px-6 py-2 uppercase text-[10px] tracking-[0.5em] font-black bg-primary/5">Stream Active</Badge>
+                  <Badge variant="outline" className="rounded-none border-primary text-primary px-6 py-2 uppercase text-[10px] tracking-[0.5em] font-black bg-primary/5">Debate Active</Badge>
                   <div className="h-px flex-1 bg-primary/20" />
                 </div>
                 <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-tight">

@@ -311,8 +311,4 @@
     -webkit-text-stroke: 1px currentColor;
     color: transparent;
   }
-
-  .italic-primary {
-    font-style: italic;
-  }
 }

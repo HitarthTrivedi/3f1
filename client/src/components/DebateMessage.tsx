@@ -64,7 +64,7 @@ export default function DebateMessage({
         <div className="space-y-4 md:space-y-6">
           <div className="flex items-start md:items-center justify-between flex-col md:flex-row gap-4 border-b border-foreground/5 pb-4 relative">
             <div className="flex items-center gap-3 md:gap-4 w-full md:w-auto">
-              <div className={`w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-none ${badgeColors[agentColor]} border flex items-center justify-center font-black italic relative overflow-hidden`}>
+              <div className={`w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-none ${badgeColors[agentColor]} border flex items-center justify-center font-black relative overflow-hidden`}>
                 {agentNum}
                 <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-background/20" />
               </div>
@@ -98,7 +98,7 @@ export default function DebateMessage({
                 h2: ({ node, ...props }) => <h2 className="text-lg font-bold mb-3 mt-6 text-foreground" {...props} />,
                 h3: ({ node, ...props }) => <h3 className="text-base font-bold mb-2 mt-5 text-foreground" {...props} />,
                 h4: ({ node, ...props }) => <h4 className="text-base font-bold mb-2 mt-4 text-foreground" {...props} />,
-                blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-primary/40 pl-4 py-1 italic mb-4 bg-foreground/[0.02]" {...props} />,
+                blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-primary/40 pl-4 py-1 mb-4 bg-foreground/[0.02]" {...props} />,
                 code: ({ node, inline, ...props }: any) => inline
                   ? <code className="bg-foreground/5 px-1.5 py-0.5 rounded text-[11px] md:text-sm relative -top-px font-mono text-primary" {...props} />
                   : <code className="block bg-foreground/5 p-3 md:p-4 rounded text-[10px] md:text-sm my-4 font-mono overflow-x-auto" {...props} />

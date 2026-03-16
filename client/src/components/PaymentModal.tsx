@@ -226,7 +226,7 @@ export default function PaymentModal({ open, onOpenChange }: PaymentModalProps) 
                         <div className="flex flex-col items-center gap-2 pt-6 border-t border-foreground/5 text-center">
                             <div className="flex items-center gap-3">
                                 <div className="h-px w-6 sm:w-8 bg-foreground/10" />
-                                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] opacity-30 italic-primary">Secure Transaction Flow</span>
+                                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] opacity-30">Secure Transaction Flow</span>
                                 <div className="h-px w-6 sm:w-8 bg-foreground/10" />
                             </div>
                             <p className="text-[7px] sm:text-[9px] uppercase font-bold tracking-widest opacity-40">Powered by Razorpay Node Interface // ₹25 = 25 Units (Standard)</p>

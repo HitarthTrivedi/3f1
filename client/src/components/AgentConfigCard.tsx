@@ -44,20 +44,11 @@ export default function AgentConfigCard({
       <div className="absolute inset-0 pointer-events-none opacity-[0.02] dark:opacity-[0.05] bg-[linear-gradient(rgba(255,102,0,0.1)_1px,transparent_1px)] bg-[size:100%_4px]" />
       <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-primary opacity-20 dark:opacity-30" />
       <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-primary opacity-20 dark:opacity-30" />
-      {/* Mechanical Header Details */}
-      <div className="absolute top-0 right-0 p-4 flex items-center gap-2">
-        <div className="flex flex-col items-end">
-          <span className="text-[7px] uppercase font-black tracking-[0.3em] opacity-30">Deployment Status</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[8px] uppercase font-black tracking-widest text-green-500">Ready</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-          </div>
-        </div>
-      </div>
+
 
       <div className="space-y-8">
         <div className="flex items-center gap-5 mb-4">
-          <div className={`w-14 h-14 rounded-none ${colorClass} flex items-center justify-center border-2 font-black text-2xl italic-primary relative`}>
+          <div className={`w-14 h-14 rounded-none ${colorClass} flex items-center justify-center border-2 font-black text-2xl relative`}>
             {agentNumber}
             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-background border-t-2 border-l-2 border-foreground" />
           </div>
@@ -65,10 +56,6 @@ export default function AgentConfigCard({
             <h3 className="text-2xl font-black uppercase tracking-tighter leading-none" data-testid={`text-agent-${agentNumber}`}>
               Faction <span className="text-primary">{agentNumber}</span>
             </h3>
-            <div className="text-[9px] uppercase font-black opacity-40 tracking-[0.3em] mt-1.5 flex items-center gap-2">
-              CORE IDENT: 00{agentNumber}X
-              <span className="w-4 h-px bg-foreground/10" />
-            </div>
           </div>
         </div>
 
@@ -132,16 +119,6 @@ export default function AgentConfigCard({
               <p className="text-[8px] uppercase tracking-widest opacity-30 mt-1 font-bold">No external key required</p>
             </div>
           )}
-        </div>
-
-        {/* Technical Footer Indicator */}
-        <div className="pt-6 border-t border-foreground/[0.05] flex items-center justify-between">
-          <div className="text-[8px] uppercase font-black tracking-[0.3em] opacity-20 group-hover:opacity-40 transition-opacity">
-            OS-V2 // <span className="font-logo">3F1</span>.SECURE.LINK
-          </div>
-          <div className="text-[8px] uppercase font-black tracking-[0.3em] opacity-10 group-hover:text-primary group-hover:opacity-100 transition-all">
-            MOD.IDENT // 0x{agentNumber}F1
-          </div>
         </div>
       </div>
     </Card>
