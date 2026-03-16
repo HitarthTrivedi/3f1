@@ -76,15 +76,11 @@ export default function DebateMessage({
                   <span className="text-[10px] text-primary uppercase font-bold tracking-widest" data-testid={`text-round-${agentName.toLowerCase().replace(/\s+/g, '-')}`}>
                     Round {round} / {totalRounds}
                   </span>
-                  <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Neural Response</span>
                 </div>
               </div>
             </div>
 
-            <div className="hidden md:block absolute top-0 right-0 text-[7px] font-black opacity-10 tracking-[0.2em] select-none">
-              SEQ: {round}X-0{index}
-            </div>
+
           </div>
           <div className="font-sans text-[15px] md:text-base max-w-none font-medium leading-[1.8] text-foreground/90 markdown-content selection:bg-primary selection:text-primary-foreground space-y-4" data-testid={`text-message-${agentName.toLowerCase().replace(/\s+/g, '-')}`}>
             <ReactMarkdown
@@ -125,15 +121,7 @@ export default function DebateMessage({
             )}
           </div>
 
-          <div className="pt-3 md:pt-4 border-t border-foreground/[0.03] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-1 rounded-full bg-green-500/50" />
-              <span className="text-[8px] uppercase font-black tracking-[0.3em] opacity-20">Neural_Transcription // OK</span>
-            </div>
-            <div className="text-[8px] uppercase font-black tracking-[0.2em] opacity-10">
-              Processed via <span className="font-logo">3F1</span>.CORE
-            </div>
-          </div>
+
         </div>
       </Card>
     </motion.div>

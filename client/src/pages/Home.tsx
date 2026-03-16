@@ -405,9 +405,7 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="relative"
           >
-            <div className="absolute -left-12 top-0 text-[10px] font-black vertical-text opacity-10 tracking-[1em] uppercase hidden 2xl:block">
-              Deployment Mode // 01
-            </div>
+
 
             <div className="flex flex-col mb-16 space-y-4">
               <div className="inline-flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.4em]">
@@ -459,9 +457,6 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div className="absolute -right-20 top-1/2 -translate-y-1/2 text-[10px] font-black vertical-text opacity-10 tracking-[1em] uppercase hidden 2xl:block">
-              Neural Thesis Process
-            </div>
 
             <div className="flex items-center gap-4 mb-12">
               <div className="h-px w-20 bg-primary/30" />
