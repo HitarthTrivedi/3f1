@@ -538,11 +538,11 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-center gap-10">
+              <div className="flex flex-col sm:flex-row justify-center gap-6 sm:gap-10 px-4 sm:px-0">
                 <ListenUpButton messages={messages} />
                 <Button
                   variant="outline"
-                  className="rounded-none h-20 px-16 border-2 border-foreground text-foreground hover:bg-foreground hover:text-background font-black uppercase text-base tracking-widest transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-[-8px] translate-y-[-8px] hover:translate-x-0 hover:translate-y-0"
+                  className="rounded-none h-14 md:h-20 px-8 md:px-16 border-2 border-foreground text-foreground hover:bg-foreground hover:text-background font-black uppercase text-sm md:text-base tracking-widest transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-[-4px] translate-y-[-4px] md:translate-x-[-8px] md:translate-y-[-8px] hover:translate-x-0 hover:translate-y-0 w-full md:w-auto"
                   onClick={async () => {
                     if (!user) {
                       toast({

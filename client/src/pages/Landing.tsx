@@ -161,13 +161,10 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="relative aspect-square flex items-center justify-center p-1 bg-background border border-background/10 shadow-[20px_20px_0px_-5px_rgba(255,102,0,0.1)] md:shadow-[40px_40px_0px_-10px_rgba(255,102,0,0.1)] transition-transform hover:scale-[1.02] duration-500 max-w-sm mx-auto w-full lg:max-w-none">
-            <div className="w-full h-full grayscale hover:grayscale-0 transition-all duration-700 p-4 md:p-8 flex items-center justify-center border border-foreground/5">
+          <div className="relative aspect-square flex items-center justify-center p-1 w-full max-w-sm mx-auto lg:max-w-none">
+            <div className="w-full h-full p-4 md:p-8 flex items-center justify-center">
               <AgentVisual />
             </div>
-            {/* Coordinate markers in card corners */}
-            <span className="absolute top-4 left-4 text-[8px] font-black font-mono opacity-20">X: 104.2 / Y: 88.1</span>
-            <span className="absolute bottom-4 right-4 text-[8px] font-black font-mono opacity-20">SEQ: 009827-X</span>
           </div>
         </div>
       </motion.section>

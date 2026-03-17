@@ -194,11 +194,11 @@ export default function ListenUpButton({ messages }: ListenUpButtonProps) {
                     onClick={handleListenUp}
                     variant="outline"
                     data-testid="button-listen-up"
-                    className="group relative inline-flex items-center gap-3 h-20 px-16 rounded-none font-black text-base tracking-widest uppercase border-2 border-foreground bg-primary text-primary-foreground hover:bg-foreground hover:text-background transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-[-8px] translate-y-[-8px] hover:translate-x-0 hover:translate-y-0"
+                    className="group relative inline-flex items-center justify-center gap-2 md:gap-3 h-14 md:h-20 px-6 md:px-16 rounded-none font-black text-sm md:text-base tracking-widest uppercase border-2 border-foreground bg-primary text-primary-foreground hover:bg-foreground hover:text-background transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-[-4px] translate-y-[-4px] md:translate-x-[-8px] md:translate-y-[-8px] hover:translate-x-0 hover:translate-y-0 w-full md:w-auto"
                 >
-                    <Headphones className="w-5 h-5 relative z-10" />
+                    <Headphones className="w-4 h-4 md:w-5 md:h-5 relative z-10" />
                     <span className="relative z-10">Listen Up —</span>
-                    <span className="relative z-10 text-xs font-bold border-l border-current pl-3 ml-1 opacity-80">
+                    <span className="relative z-10 text-[10px] md:text-xs font-bold border-l border-current pl-2 md:pl-3 ml-1 opacity-80">
                         {TTS_CREDIT_COST} Credits
                     </span>
                 </Button>
