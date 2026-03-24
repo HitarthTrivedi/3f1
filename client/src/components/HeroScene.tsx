@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, LogOut, User as UserIcon, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { Logo } from "./Logo";
 
 export const HeroScene = () => {
     const { user, signOut, isLoading: authLoading } = useAuth();
@@ -21,16 +22,16 @@ export const HeroScene = () => {
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="space-y-6"
                 >
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-none border border-primary text-[10px] uppercase tracking-[0.2em] text-primary font-bold">
-                        Introducing <span className="font-logo">3F1</span>.OS debate
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-none border border-primary text-[10px] uppercase tracking-[0.2em] font-bold text-primary">
+                        Introducing <Logo className="text-[10px]" dashClassName="w-2 h-[2px] mt-0.5" />.OS debate
                     </div>
 
-                    <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-foreground font-logo">
-                        3F1
+                    <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-foreground font-logo flex items-center justify-center">
+                        <Logo className="text-5xl sm:text-6xl md:text-8xl" dashClassName="w-8 md:w-20 h-1.5 md:h-4 mt-2 md:mt-6" />
                     </h1>
 
                     <p className="text-lg md:text-2xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-                        <span className="font-logo">3F1</span> leverages a three-agent dialectic protocol to distill complex topics into objective, structured synthesis.
+                        <Logo className="inline-flex text-lg md:text-2xl" dashClassName="w-3 h-[2px] mt-0.5" /> leverages a three-agent debate protocol to distill complex topics into objective, structured synthesis.
                     </p>
                 </motion.div>
 

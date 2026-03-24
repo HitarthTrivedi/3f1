@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, useSpring, useMotionValue } from "framer-motion";
 import { useLocation } from "wouter";
+import { Logo } from "./Logo";
 
 export default function MouseFollowerButton() {
     const [isVisible, setIsVisible] = useState(false);
@@ -64,7 +65,7 @@ export default function MouseFollowerButton() {
         >
             <div className="w-full h-full bg-primary/10 backdrop-blur-md border border-primary/20 text-primary-foreground rounded-full text-[10px] font-black tracking-widest flex items-center justify-center cursor-pointer shadow-2xl hover:bg-primary/20 transition-all duration-300 border-dashed border-2">
                 <div className="bg-background/80 px-3 py-1 rounded-full border border-primary/30 uppercase text-orange-500">
-                    Trigger <span className="font-logo">3F1</span>
+                    Trigger <Logo className="inline-flex text-base" dashClassName="w-2 h-[2px] mt-0.5" />
                 </div>
             </div>
         </motion.div>

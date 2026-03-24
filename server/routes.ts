@@ -190,13 +190,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[Payment Verify] Processing payment: ₹${amountInRupees} for user ${user.email}`);
 
-      if (amountInRupees === 10) creditsToAdd = 50;
-      else if (amountInRupees === 50) creditsToAdd = 300;
-      else if (amountInRupees === 100) creditsToAdd = 650;
-      else if (amountInRupees === 500) creditsToAdd = 3500;
+      if (amountInRupees === 25) creditsToAdd = 25;
+      else if (amountInRupees === 35) creditsToAdd = 50;
       else {
-        // Fallback to standard ₹1 = 5 credits
-        creditsToAdd = Math.floor(amountInRupees * 5);
+        // Fallback to standard ₹1 = 1 credit (as per ₹25 = 25)
+        creditsToAdd = Math.floor(amountInRupees * 1);
       }
 
       // Update user credits

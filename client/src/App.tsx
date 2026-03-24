@@ -6,6 +6,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
 import AuthPage from "@/pages/AuthPage";
+import About from "@/pages/About";
+import Contact from "@/pages/Contact";
+import Pricing from "@/pages/Pricing";
+import Documentation from "@/pages/Documentation";
+import TermsOfUse from "@/pages/TermsOfUse";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
 
@@ -17,6 +23,12 @@ function Router() {
       <Route path="/" component={Landing} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/debate" component={Home} />
+      <Route path="/about" component={About} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/pricing" component={Pricing} />
+      <Route path="/documentation" component={Documentation} />
+      <Route path="/terms" component={TermsOfUse} />
+      <Route path="/privacy" component={PrivacyPolicy} />
       <Route component={NotFound} />
     </Switch>
   );

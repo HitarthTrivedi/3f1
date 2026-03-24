@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Logo } from "@/components/Logo";
 
 export default function AuthPage() {
     const { user, isLoading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
@@ -82,7 +83,7 @@ export default function AuthPage() {
             <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
                 <div className="absolute top-10 left-10 text-[10px] font-black tracking-widest">[00:00] -- ORIGIN</div>
                 <div className="absolute top-10 right-10 text-[10px] font-black tracking-widest">AUTH // S-01</div>
-                <div className="absolute bottom-10 left-10 text-[10px] font-black tracking-widest"><span className="font-logo">3F1</span>.OS_SECURE</div>
+                <div className="absolute bottom-10 left-10 text-[10px] font-black tracking-widest"><Logo className="text-[10px] inline-flex" dashClassName="w-1.5 h-[1.5px] mt-0.5" />.OS_SECURE</div>
 
                 <div className="absolute inset-y-0 left-[10%] w-px bg-foreground" />
                 <div className="absolute inset-y-0 left-[90%] w-px bg-foreground" />
@@ -109,7 +110,7 @@ export default function AuthPage() {
                     <div className="absolute inset-0 pointer-events-none opacity-[0.02] dark:opacity-[0.05] bg-[linear-gradient(rgba(255,102,0,0.1)_1px,transparent_1px)] bg-[size:100%_4px]" />
                     <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-primary opacity-30 dark:opacity-40" />
                     <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-primary opacity-30 dark:opacity-40" />
-                    <div className="absolute top-0 right-0 p-4 text-[8px] font-black opacity-10 tracking-[0.2em] select-none uppercase"><span className="font-logo">3F1</span>.SECURE_ACCESS</div>
+                    <div className="absolute top-0 right-0 p-4 text-[8px] font-black opacity-10 tracking-[0.2em] select-none uppercase"><Logo className="text-[8px] inline-flex" dashClassName="w-1 h-[1px] mt-0.5" />.SECURE_ACCESS</div>
 
                     <CardHeader className="p-10 pb-6 border-b border-foreground/5">
                         <CardTitle className="text-2xl font-black uppercase tracking-tighter">Initialize Session</CardTitle>

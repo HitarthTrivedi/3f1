@@ -54,7 +54,7 @@ export default function AgentConfigCard({
           </div>
           <div>
             <h3 className="text-2xl font-black uppercase tracking-tighter leading-none" data-testid={`text-agent-${agentNumber}`}>
-              Faction <span className="text-primary">{agentNumber}</span>
+              Agent <span className="text-primary">{agentNumber}</span>
             </h3>
           </div>
         </div>

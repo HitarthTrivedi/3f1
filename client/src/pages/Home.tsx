@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Footer } from "@/components/Footer";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Logo } from "@/components/Logo";
 
 interface AgentConfig {
   provider: string;
@@ -94,7 +95,7 @@ export default function Home() {
 
           toast({
             title: "Session Restored",
-            description: "Your previous dialectic synthesis has been restored.",
+            description: "Your previous debate synthesis has been restored.",
           });
         }
       } catch (error) {
@@ -109,7 +110,7 @@ export default function Home() {
     if (!agent1.provider || !agent2.provider || !agent3.provider) {
       toast({
         title: "Configuration incomplete",
-        description: "Please configure all three factions before starting the dialectic.",
+        description: "Please configure all three agents before starting the debate.",
         variant: "destructive",
       });
       return;
@@ -129,7 +130,7 @@ export default function Home() {
     if (!model1 || !model2 || !model3) {
       toast({
         title: "Model selection required",
-        description: "Please specify a model for each faction.",
+        description: "Please specify a model for each agent.",
         variant: "destructive",
       });
       return;
@@ -139,7 +140,7 @@ export default function Home() {
     if (agents.some(a => a.provider !== "builtin" && a.provider !== "builtin_grok" && a.provider !== "huggingface" && !a.apiKey)) {
       toast({
         title: "API keys required",
-        description: "Please provide API keys for external providers, or use Built-in Factions.",
+        description: "Please provide API keys for external providers, or use Built-in Agents.",
         variant: "destructive",
       });
       return;
@@ -153,7 +154,7 @@ export default function Home() {
         if (!free && user.credits < cost) {
           toast({
             title: "Insufficient Credits",
-            description: "You need 10 credits to use Built-in Factions. Please buy more or use your own keys.",
+            description: "You need 10 credits to use Built-in Agents. Please buy more or use your own keys.",
             variant: "destructive"
           });
           return;
@@ -288,7 +289,7 @@ export default function Home() {
 
     toast({
       title: "Download started",
-      description: "Your dialectic synthesis is being downloaded as JSON.",
+      description: "Your debate synthesis is being downloaded as JSON.",
     });
   };
 
@@ -322,81 +323,50 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground overflow-x-hidden">
-      {/* Structural technical background grid */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
-        <div className="absolute top-10 left-10 text-[10px] font-black tracking-widest">[00:00] -- ORIGIN</div>
-        <div className="absolute top-10 right-10 text-[10px] font-black tracking-widest">INFRA // AX-01</div>
-        <div className="absolute bottom-10 left-10 text-[10px] font-black tracking-widest"><span className="font-logo">3F1</span>.OS_V2.0.4</div>
-        <div className="absolute bottom-10 right-10 text-[10px] font-black tracking-widest">TERMINAL // ACTIVE</div>
-
-        {/* Vertical lines that span full height */}
-        <div className="absolute inset-y-0 left-[10%] w-px bg-foreground" />
-        <div className="absolute inset-y-0 left-[90%] w-px bg-foreground" />
-        <div className="absolute inset-y-0 left-1/2 w-px bg-foreground" />
-      </div>
-
-      {/* Decorative vertical lines for consistency with Hero */}
-      <div className="fixed inset-y-0 left-1/4 w-px bg-border/20 pointer-events-none hidden lg:block z-0" />
-      <div className="fixed inset-y-0 right-1/4 w-px bg-border/20 pointer-events-none hidden lg:block z-0" />
-
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground relative">
       <header className="border-b border-foreground/10 bg-background sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 flex flex-wrap items-center justify-between gap-y-4">
-          <div className="flex items-center gap-3 md:gap-6">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-6">
             <Link href="/">
-              <Button variant="outline" size="icon" className="w-9 h-9 md:w-10 md:h-10 rounded-none border-foreground/20 hover:border-foreground transition-all group" data-testid="button-back">
-                <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
+              <Button variant="outline" size="icon" className="w-10 h-10 rounded-none border-foreground/20 hover:border-foreground transition-all group">
+                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <div className="relative">
-              <h1 className="text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none font-logo" data-testid="text-logo">
-                3F1 <span className="text-primary italic">—</span>
-              </h1>
-              <div className="hidden xs:flex items-center gap-2 mt-1">
-                <p className="text-[8px] md:text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Deploy & Synthesize</p>
-                <span className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-primary animate-pulse" />
-              </div>
-            </div>
+            <Logo className="text-2xl" />
           </div>
-
-          <div className="flex items-center gap-2 md:gap-4 ml-auto sm:ml-0">
-
-
-            <ThemeToggle />
-
-            {isLoading ? (
-              <div className="flex items-center gap-4 px-4 md:px-8 py-2 border border-foreground/10 bg-foreground/5 h-10 md:h-12">
-                <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin opacity-40" />
-                <span className="text-[8px] md:text-[10px] uppercase font-black tracking-[0.4em] opacity-30">Sync...</span>
-              </div>
-            ) : user ? (
-              <div className="flex items-center gap-3 md:gap-6">
-                <div className="text-right hidden sm:block">
-                  <div className="text-[8px] md:text-[10px] uppercase tracking-widest font-black opacity-40">Wallet Info</div>
-                  <div className="text-xs md:text-sm font-bold">Credits: {user.credits}</div>
-                </div>
-                <Button
-                  size="sm"
-                  className="rounded-none bg-foreground text-background hover:bg-primary transition-colors font-bold uppercase text-[8px] md:text-[10px] tracking-widest h-9 md:h-10 px-4 md:px-6 shadow-[4px_4px_0px_0px_rgba(255,102,0,0.5)]"
-                  onClick={() => setShowPaymentModal(true)}
-                >
-                  <CreditCard className="h-3 w-3 md:h-4 md:w-4 mr-1.5 md:mr-2" />
-                  Buy Credits
-                </Button>
-                <Button variant="ghost" className="hidden xs:block rounded-none uppercase text-[8px] md:text-[10px] font-bold tracking-[0.2em] hover:text-primary transition-colors" onClick={signOut}>Logout</Button>
-              </div>
-            ) : (
-              <Link href="/auth">
-                <Button className="rounded-none bg-foreground text-background hover:bg-primary transition-colors font-bold uppercase text-[10px] md:text-xs tracking-widest h-10 md:h-12 px-6 md:px-8 shadow-[4px_4px_0px_0px_rgba(255,102,0,0.3)] md:shadow-[8px_8px_0px_0px_rgba(255,102,0,0.3)]">
-                  Login —
-                </Button>
-              </Link>
+          <div className="flex items-center gap-4">
+            {user && (
+              <Badge variant="outline" className="rounded-none border-primary/20 text-primary font-black uppercase text-[10px] tracking-widest px-3 h-8">
+                {user.credits} units
+              </Badge>
             )}
+            <ThemeToggle />
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-24">
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
+        <div className="absolute inset-y-0 left-1/4 w-px bg-foreground" />
+        <div className="absolute inset-y-0 left-2/4 w-px bg-foreground" />
+        <div className="absolute inset-y-0 left-3/4 w-px bg-foreground" />
+      </div>
+
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-20 md:py-24">
+        <div className="max-w-4xl mx-auto mb-24">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="inline-flex flex-col gap-2"
+          >
+            <div className="inline-flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.4em]">
+              Operational <span className="italic">Unit</span> <span className="w-12 h-px bg-primary" />
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none">
+              Neural <br /><span className="text-stroke text-primary">Workspace</span>
+            </h2>
+          </motion.div>
+        </div>
+
         <div className="space-y-20 md:space-y-40">
           {/* SECTION 1: CONFIGURATION */}
           <motion.section
@@ -412,7 +382,7 @@ export default function Home() {
                 Step <span className="italic">01</span> <span className="w-12 h-px bg-primary" />
               </div>
               <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase leading-[0.9]">
-                Configure <br /><span className="text-stroke">Your Factions</span>
+                Configure <br /><span className="text-stroke">Your Agents</span>
               </h2>
             </div>
 
@@ -476,12 +446,12 @@ export default function Home() {
                 isDebating={isDebating}
                 startButtonText={
                   !usesCredits
-                    ? "Initialize Dialectic —"
+                    ? "Initialize Debate —"
                     : !user
-                      ? "Initialize Dialectic (1 Free) —"
+                      ? "Initialize Debate (1 Free) —"
                       : user.freePrompts > 0
-                        ? `Initialize Dialectic (${user.freePrompts} Free) —`
-                        : "Initialize Dialectic (10 Credits) —"
+                        ? `Initialize Debate (${user.freePrompts} Free) —`
+                        : "Initialize Debate (10 Credits) —"
                 }
                 isStartDisabled={
                   !!(usesCredits && user && user.freePrompts <= 0 && user.credits < 10)
