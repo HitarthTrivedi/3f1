@@ -334,11 +334,21 @@ export default function Home() {
             </Link>
             <Logo className="text-2xl" />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {user && (
-              <Badge variant="outline" className="rounded-none border-primary/20 text-primary font-black uppercase text-[10px] tracking-widest px-3 h-8">
-                {user.credits} units
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="rounded-none border-primary/20 text-primary font-black uppercase text-[10px] tracking-widest px-3 h-8">
+                  {user.credits} units
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPaymentModal(true)}
+                  className="h-8 px-3 rounded-none border border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  Buy
+                </Button>
+              </div>
             )}
             <ThemeToggle />
           </div>
