@@ -325,12 +325,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ? availableGeminiKeys[index % availableGeminiKeys.length]
               : "";
 
-            console.log(`[Built-in Gemini] Agent ${index + 1} allotted key: ${selectedKey.substring(0, 8)}...`);
+            console.log(`[Built-in Gemma] Agent ${index + 1} allotted key: ${selectedKey.substring(0, 8)}...`);
             return {
               ...agent,
               provider: "gemini", // Map to underlying provider
               apiKey: selectedKey,
-              model: "gemini-2.5-flash" // Force model for builtin
+              model: "gemma-4-31b-it" // Force model for builtin
             };
           } else if (agent.provider === "builtin_grok") {
             // Mapping for Built-in Grok

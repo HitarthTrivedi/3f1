@@ -67,7 +67,7 @@ export default function AgentConfigCard({
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent className="rounded-none border-2 border-foreground shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                <SelectItem value="builtin">Built-in Gemini (Credits)</SelectItem>
+                <SelectItem value="builtin">Built-in Gemma (Credits)</SelectItem>
                 <SelectItem value="builtin_grok">Built-in Grok (Credits)</SelectItem>
                 <SelectItem value="huggingface" disabled>Uncensored (Soon)</SelectItem>
                 <SelectItem value="openai">ChatGPT</SelectItem>
