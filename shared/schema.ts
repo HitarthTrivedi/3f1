@@ -48,7 +48,7 @@ export type ActiveDebate = typeof activeDebates.$inferSelect;
 
 export const agentConfigSchema = z.object({
   name: z.string(),
-  provider: z.enum(["openai", "gemini", "perplexity", "custom", "builtin", "builtin_grok", "huggingface", "grok"]),
+  provider: z.enum(["openai", "gemini", "perplexity", "custom", "builtin", "huggingface", "grok"]),
   model: z.string(),
   apiKey: z.string(),
   customEndpoint: z.string().optional(),
@@ -62,9 +62,10 @@ export const debateConfigSchema = z.object({
 export const debateMessageSchema = z.object({
   id: z.string(),
   agentName: z.string(),
-  agentNumber: z.number().int().min(1).max(3),
+  agentNumber: z.number().int().min(0).max(2),
   round: z.number().int().min(1).max(5),
   message: z.string(),
+  thinking: z.string().optional(), // AI chain-of-thought (from thinking models)
   timestamp: z.string(),
 });
 

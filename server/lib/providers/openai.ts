@@ -4,6 +4,7 @@ export async function callOpenAI(
   apiKey: string,
   model: string,
   systemPrompt: string,
+  userPrompt: string,
   conversationHistory: Array<{ role: string; content: string }>
 ): Promise<string> {
   const openai = new OpenAI({ apiKey });
@@ -14,6 +15,7 @@ export async function callOpenAI(
       role: msg.role as "user" | "assistant",
       content: msg.content,
     })),
+    { role: "user" as const, content: userPrompt },
   ];
 
   const response = await openai.chat.completions.create({

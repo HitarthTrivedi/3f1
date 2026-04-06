@@ -2,6 +2,7 @@ export async function callPerplexity(
   apiKey: string,
   model: string,
   systemPrompt: string,
+  userPrompt: string,
   conversationHistory: Array<{ role: string; content: string }>
 ): Promise<string> {
   const response = await fetch("https://api.perplexity.ai/chat/completions", {
@@ -15,6 +16,7 @@ export async function callPerplexity(
       messages: [
         { role: "system", content: systemPrompt },
         ...conversationHistory,
+        { role: "user", content: userPrompt },
       ],
       temperature: 0.8,
       max_tokens: 1000,

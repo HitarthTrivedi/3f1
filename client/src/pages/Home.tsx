@@ -51,7 +51,7 @@ export default function Home() {
   });
 
   const agents = [agent1, agent2, agent3];
-  const usesCredits = agents.some(a => a.provider === "builtin" || a.provider === "builtin_grok" || a.provider === "huggingface");
+  const usesCredits = agents.some(a => a.provider === "builtin" || a.provider === "huggingface");
 
   // Check for active debate on mount
   useEffect(() => {
@@ -118,7 +118,6 @@ export default function Home() {
 
     const getModel = (agent: AgentConfig) => {
       if (agent.provider === "builtin") return "gemma-4-31b-it";
-      if (agent.provider === "builtin_grok") return "grok-4-latest";
       if (agent.provider === "huggingface") return "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai";
       return agent.model;
     };
@@ -137,7 +136,7 @@ export default function Home() {
     }
 
     // Check keys for non-builtin agents
-    if (agents.some(a => a.provider !== "builtin" && a.provider !== "builtin_grok" && a.provider !== "huggingface" && !a.apiKey)) {
+    if (agents.some(a => a.provider !== "builtin" && a.provider !== "huggingface" && !a.apiKey)) {
       toast({
         title: "API keys required",
         description: "Please provide API keys for external providers, or use Built-in Agents.",
@@ -239,7 +238,8 @@ export default function Home() {
                   agentName: data.agentName,
                   round: data.round,
                   message: data.message,
-                  agentColor: agentColorMap[data.agentNumber - 1],
+                  thinking: data.thinking,
+                  agentColor: agentColorMap[data.agentNumber],
                 };
                 setMessages(prev => [...prev, message]);
               }
@@ -403,7 +403,7 @@ export default function Home() {
                 provider={agent1.provider}
                 model={agent1.model}
                 apiKey={agent1.apiKey}
-                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemma-4-31b-it" : val === "builtin_grok" ? "grok-4-latest" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent1.model })}
+                onProviderChange={(val) => setAgent1({ ...agent1, provider: val, model: val === "builtin" ? "gemma-4-31b-it" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent1.model })}
                 onModelChange={(val) => setAgent1({ ...agent1, model: val })}
                 onApiKeyChange={(val) => setAgent1({ ...agent1, apiKey: val })}
               />
@@ -413,7 +413,7 @@ export default function Home() {
                 provider={agent2.provider}
                 model={agent2.model}
                 apiKey={agent2.apiKey}
-                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemma-4-31b-it" : val === "builtin_grok" ? "grok-4-latest" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent2.model })}
+                onProviderChange={(val) => setAgent2({ ...agent2, provider: val, model: val === "builtin" ? "gemma-4-31b-it" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent2.model })}
                 onModelChange={(val) => setAgent2({ ...agent2, model: val })}
                 onApiKeyChange={(val) => setAgent2({ ...agent2, apiKey: val })}
               />
@@ -423,7 +423,7 @@ export default function Home() {
                 provider={agent3.provider}
                 model={agent3.model}
                 apiKey={agent3.apiKey}
-                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemma-4-31b-it" : val === "builtin_grok" ? "grok-4-latest" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent3.model })}
+                onProviderChange={(val) => setAgent3({ ...agent3, provider: val, model: val === "builtin" ? "gemma-4-31b-it" : val === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" : agent3.model })}
                 onModelChange={(val) => setAgent3({ ...agent3, model: val })}
                 onApiKeyChange={(val) => setAgent3({ ...agent3, apiKey: val })}
               />
@@ -489,7 +489,7 @@ export default function Home() {
                 </h2>
               </div>
               <div className="p-1 bg-foreground/5 border border-foreground/10">
-                <DebateFeed messages={messages} totalRounds={5} />
+                <DebateFeed messages={messages} totalRounds={5} isDebating={isDebating} />
               </div>
             </motion.section>
           )}

@@ -2,6 +2,7 @@ export async function callCustomAPI(
   apiKey: string,
   endpoint: string,
   systemPrompt: string,
+  userPrompt: string,
   conversationHistory: Array<{ role: string; content: string }>
 ): Promise<string> {
   const response = await fetch(endpoint, {
@@ -14,6 +15,7 @@ export async function callCustomAPI(
       messages: [
         { role: "system", content: systemPrompt },
         ...conversationHistory,
+        { role: "user", content: userPrompt },
       ],
     }),
   });

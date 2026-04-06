@@ -4,6 +4,7 @@ export async function callGrok(
     apiKey: string,
     model: string,
     systemPrompt: string,
+    userPrompt: string,
     conversationHistory: Array<{ role: string; content: string }>
 ): Promise<string> {
     const grok = new OpenAI({
@@ -17,9 +18,9 @@ export async function callGrok(
             role: msg.role as "user" | "assistant",
             content: msg.content,
         })),
+        { role: "user" as const, content: userPrompt },
     ];
 
-    // Basic retry logic for 429 (similar to Gemini but simplified for now)
     let lastError: any = null;
     for (let attempt = 0; attempt < 3; attempt++) {
         try {

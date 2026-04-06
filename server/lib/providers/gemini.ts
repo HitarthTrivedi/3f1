@@ -1,11 +1,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+export interface GeminiResult {
+  content: string;
+  thinking?: string;
+}
+
 export async function callGemini(
   apiKey: string,
   model: string,
   systemPrompt: string,
+  userPrompt: string,
   conversationHistory: Array<{ role: string; content: string }>
-): Promise<string> {
+): Promise<GeminiResult> {
   const genAI = new GoogleGenerativeAI(apiKey);
   const geminiModel = genAI.getGenerativeModel({
     model,
@@ -19,13 +25,37 @@ export async function callGemini(
     })),
   });
 
-  // Basic retry logic for 429
   let lastError: Error | null = null;
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
-      const result = await chat.sendMessage("Continue the debate based on the conversation history.");
+      const result = await chat.sendMessage(userPrompt);
       const response = await result.response;
-      return response.text();
+
+      // Extract thinking vs content parts separately
+      // Gemini thinking models return parts with { thought: true } for reasoning
+      let thinkingText = "";
+      let contentText = "";
+
+      const candidate = response.candidates?.[0];
+      if (candidate?.content?.parts) {
+        for (const part of candidate.content.parts as any[]) {
+          if (part.thought === true && part.text) {
+            thinkingText += part.text;
+          } else if (part.text) {
+            contentText += part.text;
+          }
+        }
+      }
+
+      // Fallback: if no parts breakdown, use response.text()
+      if (!contentText) {
+        contentText = response.text();
+      }
+
+      return {
+        content: contentText,
+        thinking: thinkingText || undefined,
+      };
     } catch (error: any) {
       lastError = error;
       const errorMessage = error?.message || "";

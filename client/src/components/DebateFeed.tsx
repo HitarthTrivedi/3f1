@@ -8,15 +8,17 @@ export interface Message {
   agentName: string;
   round: number;
   message: string;
+  thinking?: string;
   agentColor: "blue" | "green" | "orange";
 }
 
 interface DebateFeedProps {
   messages: Message[];
   totalRounds: number;
+  isDebating: boolean;
 }
 
-export default function DebateFeed({ messages, totalRounds }: DebateFeedProps) {
+export default function DebateFeed({ messages, totalRounds, isDebating }: DebateFeedProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [showScroll, setShowScroll] = useState(false);
 
@@ -25,12 +27,13 @@ export default function DebateFeed({ messages, totalRounds }: DebateFeedProps) {
   };
 
   useEffect(() => {
-    // Show scroll button if we have messages
     if (messages.length > 0) {
       setShowScroll(true);
-      // Optional: Auto-scroll when new messages arrive (can be jarring, so left to user click in this implementation, 
-      // but timeout ensures it scrolls if desired when debate is actively printing)
-      setTimeout(scrollToBottom, 100);
+      // Only auto-scroll when a new message arrives during an active debate.
+      // Do NOT scroll when restoring a stored debate on page load.
+      if (isDebating) {
+        setTimeout(scrollToBottom, 100);
+      }
     } else {
       setShowScroll(false);
     }
@@ -51,6 +54,7 @@ export default function DebateFeed({ messages, totalRounds }: DebateFeedProps) {
             round={msg.round}
             totalRounds={totalRounds}
             message={msg.message}
+            thinking={msg.thinking}
             agentColor={msg.agentColor}
             index={index}
           />

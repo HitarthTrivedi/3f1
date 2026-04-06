@@ -68,7 +68,6 @@ export default function AgentConfigCard({
               </SelectTrigger>
               <SelectContent className="rounded-none border-2 border-foreground shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                 <SelectItem value="builtin">Built-in Gemma (Credits)</SelectItem>
-                <SelectItem value="builtin_grok">Built-in Grok (Credits)</SelectItem>
                 <SelectItem value="huggingface" disabled>Uncensored (Soon)</SelectItem>
                 <SelectItem value="openai">ChatGPT</SelectItem>
                 <SelectItem value="gemini">Gemini</SelectItem>
@@ -87,17 +86,16 @@ export default function AgentConfigCard({
               placeholder="e.g., gpt-4o"
               value={
                 provider === "builtin" ? "gemma-4-31b-it" :
-                  provider === "builtin_grok" ? "grok-4-latest" :
                     provider === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" :
                       model
               }
               onChange={(e) => onModelChange(e.target.value)}
-              disabled={provider === "builtin" || provider === "builtin_grok" || provider === "huggingface"}
+              disabled={provider === "builtin" || provider === "huggingface"}
               data-testid={`input-model-${agentNumber}`}
             />
           </div>
 
-          {provider !== "builtin" && provider !== "builtin_grok" && provider !== "huggingface" ? (
+          {provider !== "builtin" && provider !== "huggingface" ? (
             <div className="space-y-2.5">
               <Label htmlFor={`api-key-${agentNumber}`} className="text-[9px] uppercase font-black tracking-[0.2em] opacity-50">Access Secret (API Key)</Label>
               <Input

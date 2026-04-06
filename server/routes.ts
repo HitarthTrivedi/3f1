@@ -277,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check for Built-in usage
-      const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin" || a.provider === "builtin_grok");
+      const usesCredits = validatedConfig.agents.some(a => a.provider === "builtin");
 
       if (!usesCredits) {
         // BYOK Flow: Verify all have keys
@@ -314,36 +314,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           process.env.GEMINI_API_KEY
         ].filter((key): key is string => !!key && key.length > 0 && !key.includes("_here"));
 
-        const availableGrokKeys = [
-          process.env.GROK_API_KEY
-        ].filter((key): key is string => !!key && key.length > 0 && !key.includes("_here"));
-
         validatedConfig.agents = validatedConfig.agents.map((agent, index) => {
           if (agent.provider === "builtin") {
-            // Mapping for Built-in Gemini
             const selectedKey = availableGeminiKeys.length > 0
               ? availableGeminiKeys[index % availableGeminiKeys.length]
               : "";
-
             console.log(`[Built-in Gemma] Agent ${index + 1} allotted key: ${selectedKey.substring(0, 8)}...`);
             return {
               ...agent,
-              provider: "gemini", // Map to underlying provider
+              provider: "gemini",
               apiKey: selectedKey,
-              model: "gemma-4-31b-it" // Force model for builtin
-            };
-          } else if (agent.provider === "builtin_grok") {
-            // Mapping for Built-in Grok
-            const selectedKey = availableGrokKeys.length > 0
-              ? availableGrokKeys[index % availableGrokKeys.length]
-              : "";
-
-            console.log(`[Built-in Grok] Agent ${index + 1} allotted key: ${selectedKey.substring(0, 8)}...`);
-            return {
-              ...agent,
-              provider: "grok", // Map to underlying provider
-              apiKey: selectedKey,
-              model: "grok-4-latest" // Force model for builtin
+              model: "gemma-4-31b-it"
             };
           }
           return agent;

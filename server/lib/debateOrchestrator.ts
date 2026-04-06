@@ -1,110 +1,138 @@
 import { callProvider } from "./providers/index.js";
-// fix
 import type { AgentConfig, DebateMessage } from "../../shared/schema.js";
 import { randomUUID } from "crypto";
 
 const TOTAL_ROUNDS = 5;
-const MAX_CONTEXT_MESSAGES = 20;
+const MAX_CONTEXT_MESSAGES = 12;
 
-const AGENT_PERSONALITIES = {
-  analyst: {
-    role: "The Analyst",
-    traits: "Analytical, Structured, Objective, Inquisitive",
-    style: "Formal, logical, and concise. Focuses on definitions and data.",
-    systemPrompt: `You are Agent 1: The Analyst. Your role is to break the topic into fundamental components, define the problem, identify assumptions, and present a structured, analytical foundation.
-    Behaviors:
-    - ALWAYS use a bulleted list for your main points.
-    - Keep responses concise (maximum 5-7 bullet points).
-    - Start by crisply defining the topic.
-    - Decompose the issue into logical parts.
-    - Identify missing information and hidden assumptions.
-    - Provide factual, neutral, evidence-based analysis.
-    - Ask a clarifying question to improve debate quality.
-    - Avoid emotional language or vague statements.
-  `
-  },
-  critic: {
-    role: "The Critic",
-    traits: "Skeptical, Critical, Direct, Challenging",
-    style: "Sharp, questioning, and provocative. Focuses on flaws and contradictions.",
-    systemPrompt: `You are Agent 2: The Critic. Your job is to challenge, question, and stress-test the ideas introduced by other agents.
-    Behaviors:
-    - ALWAYS use a bulleted list for your main points.
-    - Keep responses concise (maximum 5-7 bullet points).
-    - Identify weaknesses, risks, contradictions, or flawed assumptions.
-    - Introduce alternative viewpoints.
-    - Strengthen the debate by pushing deeper inquiry.
-    - Maintain intellectual humility—attack ideas, not agents.
-    - Use counter-examples, edge cases, and contrasting frameworks.
-    - Do NOT merely disagree—provide reasoning and constructive alternatives.
-`
-  },
-  synthesizer: {
-    role: "The Synthesizer",
-    traits: "Integrative, Diplomatic, Holistic, Solution-oriented",
-    style: "Balanced, constructive, and forward-looking. Focuses on harmony and resolution.",
-    systemPrompt: `You are Agent 3: The Synthesizer. Your role is to integrate perspectives from Agent 1 and Agent 2 into coherent insights or actionable conclusions.
-    Behaviors:
-    - ALWAYS use a bulleted list for your main points.
-    - Keep responses concise (maximum 5-7 bullet points).
-    - Combine the strongest arguments from all sides.
-    - Resolve contradictions where possible.
-    - Highlight tradeoffs and balanced conclusions.
-    - Suggest frameworks, solutions, or synthesized insights.
-    - Identify what the debate has revealed that is new.
-    - Avoid re-stating points; focus on building higher-level understanding.
-`
-  }
+// Minimal one-line system prompts — no bullet points, no structure for the model to echo
+const AGENT_SYSTEM_PROMPTS: Record<number, string> = {
+  0: "You are The Analyst in a debate. Provide precise, structured, evidence-based arguments breaking topics into logical components.",
+  1: "You are The Critic in a debate. Challenge assumptions, expose contradictions, introduce counter-arguments and edge cases.",
+  2: "You are The Synthesizer in a debate. Integrate perspectives, resolve conflicts, and build toward balanced higher-level insight.",
 };
 
-function getAgentPersonality(agentNumber: number) {
-  const personalities = Object.values(AGENT_PERSONALITIES);
-  return personalities[agentNumber % personalities.length];
-}
+const ROUND_LABELS: Record<number, string> = {
+  1: "Opening Statement",
+  2: "Rebuttal",
+  3: "Deep Analysis",
+  4: "Counter-Arguments",
+  5: "Closing Statement",
+};
 
-function createSystemPrompt(
-  agentName: string,
-  agentNumber: number,
-  agentConfig: AgentConfig,
-  topic: string,
-  round: number
-): string {
-  const personality = getAgentPersonality(agentNumber);
-
-  return `You are ${agentName}, ${personality.role} in this debate.
-
-Your personality traits: ${personality.traits}
-Your communication style: ${personality.style}
-
-Topic: "${topic}"
-Round: ${round} of ${TOTAL_ROUNDS}
-
-Your task:
-- Stay true to your personality and role
-- PROVIDE YOUR ARGUMENTS IN BULLETED POINTS (point-wise structure)
-- Keep it concise (max 7 points)
-- Reference previous arguments when relevant
-- Be respectful but assertive in your position
-- Build upon or challenge previous points made
-
-Remember: You are ${personality.role}. ${personality.style}. Always use bullet points. Do NOT prefix points with 'Re:' or 'Regarding:'. Use natural conversational headings or bold text for emphasis instead.`;
+function getSystemPrompt(agentIndex: number): string {
+  return AGENT_SYSTEM_PROMPTS[agentIndex % 3];
 }
 
 function createUserPrompt(
-  history: DebateMessage[],
+  topic: string,
   round: number,
+  history: DebateMessage[],
   agentName: string
 ): string {
-  if (history.length === 0) {
-    return `Begin the debate with your opening statement. Present your initial perspective on the topic in a bulleted point list (maximum 7 points).`;
+  const roundLabel = ROUND_LABELS[round] || `Round ${round}`;
+  let prompt = "";
+
+  if (history.length > 0) {
+    const recent = history.slice(-MAX_CONTEXT_MESSAGES);
+    for (const msg of recent) {
+      prompt += `${msg.agentName}: ${msg.message}\n\n`;
+    }
+    prompt += `---\n`;
   }
 
-  const recentHistory = history.slice(-MAX_CONTEXT_MESSAGES);
-  const historyText = recentHistory
-    .map((msg) => `${msg.agentName}: ${msg.message}`)
-    .join("\n\n");
+  prompt += `Debate Topic: "${topic}"\n`;
+  prompt += `Current Round: ${roundLabel} (Round ${round}/${TOTAL_ROUNDS})\n\n`;
+  prompt += `Role: You are ${agentName}.\n\n`;
+  
+  prompt += `INSTRUCTIONS:\n`;
+  prompt += `1. Perform any internal reasoning, planning, or format checks.\n`;
+  prompt += `2. Write your FINAL debate response inside these exact tags: @@@ANSWER_START@@@ ... @@@ANSWER_END@@@\n`;
+  prompt += `3. The response inside the tags MUST start with a bold title (**Title**) followed by 5-7 bullet points.\n\n`;
+  
+  prompt += `Example output structure:\n`;
+  prompt += `My internal thoughts about the topic...\n`;
+  prompt += `@@@ANSWER_START@@@\n`;
+  prompt += `**[Your Title Here]**\n`;
+  prompt += `- **[Point 1 Keyword]:** Explanation...\n`;
+  prompt += `- **[Point 2 Keyword]:** Explanation...\n`;
+  prompt += `@@@ANSWER_END@@@\n`;
 
-  return `Previous arguments:\n${historyText}\n\nNow it's your turn, ${agentName}. Respond to the previous arguments using bulleted points. Build on strong points or challenge weak ones. Keep it concise.`;
+  return prompt;
+}
+
+/**
+ * Split the AI response into 'thinking' and 'content' based on the @@@ANSWER_START@@@ tag.
+ */
+function splitThinkingAndContent(raw: string): { content: string; thinking?: string } {
+  const startTag = "@@@ANSWER_START@@@";
+  const endTag = "@@@ANSWER_END@@@";
+  
+  if (raw.includes(startTag)) {
+    const parts = raw.split(startTag);
+    const thinking = parts[0].trim();
+    let content = parts[1].split(endTag)[0].trim();
+    
+    return { content, thinking: thinking || undefined };
+  }
+
+  // Fallback to line detection if tags are missing (should not happen with good prompts)
+  const lines = raw.split("\n");
+  const CONTENT_START = [
+    /^\*\*[^*]/, 
+    /^#+\s+\S/,  
+    /^[-•]\s+\*\*/, 
+  ];
+
+  let contentStart = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (!trimmed) continue;
+    if (CONTENT_START.some((p) => p.test(trimmed))) {
+      contentStart = i;
+      break;
+    }
+  }
+
+  if (contentStart > 0) {
+    const thinkingLines = lines.slice(0, contentStart).filter((l) => l.trim());
+    const content = lines.slice(contentStart).join("\n").trim();
+    const thinking = thinkingLines.join("\n").trim();
+    return { content, thinking: thinking || undefined };
+  }
+
+  return { content: raw.trim() };
+}
+
+/**
+ * Clean leftover echo artifacts from the content portion only.
+ */
+function cleanContent(raw: string): string {
+  let text = raw;
+  // Strip tags if they remained
+  text = text.replace(/@@@ANSWER_START@@@/g, "");
+  text = text.replace(/@@@ANSWER_END@@@/g, "");
+  
+  // Strip any leftover preamble lines that slipped through
+  const preamblePatterns = [
+    /^(Role|Task|Round|Format|Constraints|Topic|Components|Assumptions|Goal|Output|Summary|Analysis|Context|Note):[^\n]*/gim,
+    /^Now respond as .*$/gim,
+    /^Format your response.*$/gim,
+    /^Start directly with.*$/gim,
+    /^---+\s*$/gim,
+    /^Re:\s*/gim,
+    /^Regarding:\s*/gim,
+    /^\*?\s*(Formal|Logical|Concise|Bulleted|No "Re:")\??\s*(Yes|No)\.?\s*$/gim,
+  ];
+
+  for (const pattern of preamblePatterns) {
+    text = text.replace(pattern, "");
+  }
+
+  // Collapse 3+ blank lines into 2
+  text = text.replace(/\n{3,}/g, "\n\n");
+  
+  return text.trim();
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -118,29 +146,35 @@ export async function runDebate(
 
   for (let round = 1; round <= TOTAL_ROUNDS; round++) {
     for (let i = 0; i < agents.length; i++) {
-      // Add delay between agents to avoid rate limits
       if (round > 1 || i > 0) {
         await sleep(5000);
       }
 
       const agent = agents[i];
-      const systemPrompt = createSystemPrompt(agent.name, i, agent, topic, round);
-      const userPrompt = createUserPrompt(history, round, agent.name);
+      const systemPrompt = getSystemPrompt(i);
+      const userPrompt = createUserPrompt(topic, round, history, agent.name);
 
       try {
-        const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
-
-        const content = await callProvider(
+        const { content: rawContent, thinking: apiThinking } = await callProvider(
           agent,
-          combinedPrompt,
+          systemPrompt,
+          userPrompt,
           []
         );
+
+        // Decisive splitting based on tags
+        const { content: splitContent, thinking: textThinking } = splitThinkingAndContent(rawContent);
+        const content = cleanContent(splitContent);
+
+        // Prefer API-level thinking (Gemini thought parts) over text-extracted thinking
+        const thinking = apiThinking || textThinking;
 
         const message: DebateMessage = {
           id: randomUUID(),
           agentName: agent.name,
           agentNumber: i,
           message: content,
+          thinking: thinking ? thinking.trim() : undefined,
           timestamp: new Date().toISOString(),
           round,
         };
@@ -149,7 +183,6 @@ export async function runDebate(
         onMessage(message);
       } catch (error) {
         console.error(`Error with agent ${agent.name}:`, error);
-        // Throw the error so the top-level route handler can catch it and avoid deduction
         throw error;
       }
     }
