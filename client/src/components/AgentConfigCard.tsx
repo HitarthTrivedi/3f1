@@ -86,7 +86,7 @@ export default function AgentConfigCard({
               className="rounded-none border-foreground/10 h-12 font-bold focus:ring-0 focus:border-primary transition-colors text-xs placeholder:opacity-20"
               placeholder="e.g., gpt-4o"
               value={
-                provider === "builtin" ? "gemini-2.0-flash" :
+                provider === "builtin" ? "gemma-4-31b-it" :
                   provider === "builtin_grok" ? "grok-4-latest" :
                     provider === "huggingface" ? "mlabonne/Meta-Llama-3.1-8B-Instruct-abliterated:featherless-ai" :
                       model
